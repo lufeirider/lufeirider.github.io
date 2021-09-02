@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>SQLMAP如何自动检测Boolean型注入 | lufei&#39;s blog</title>
+  <meta name="description" content="0x00 前言一次使用sqlmap过程中，它无法检测出一个很明显的布尔型回显注入，很好奇sqlmap如何检测不出。再加上有写检测注入工具的想法，看看sqlmap究竟是如何自动判断boolean型注入。 0x01 无法检测boolean注入这里是存在boolean型注入，sqlmap检测不出来了。 但是当把”33333333”增长一点，sqlmap是提取到”33333333…”作为了关键词来判断哪个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQLMAP如何自动检测Boolean型注入">
+<meta property="og:url" content="https://lufe1.cn/2018/12/02/SQLMAP%E5%A6%82%E4%BD%95%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="0x00 前言一次使用sqlmap过程中，它无法检测出一个很明显的布尔型回显注入，很好奇sqlmap如何检测不出。再加上有写检测注入工具的想法，看看sqlmap究竟是如何自动判断boolean型注入。 0x01 无法检测boolean注入这里是存在boolean型注入，sqlmap检测不出来了。 但是当把”33333333”增长一点，sqlmap是提取到”33333333…”作为了关键词来判断哪个">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/1.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/2.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/3.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/4.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/5.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/6.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/7.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/8.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/9.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/10.png">
+<meta property="og:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/11.png">
+<meta property="article:published_time" content="2018-12-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="web安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2018/12/02/SQLMAP%E5%A6%82%E4%BD%95%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-SQLMAP如何自动检测Boolean型注入" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SQLMAP如何自动检测Boolean型注入
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/12/02/SQLMAP%E5%A6%82%E4%BD%95%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/" class="article-date">
+	  <time datetime="2018-12-01T16:00:00.000Z" itemprop="datePublished">2018-12-02</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/12/02/SQLMAP%E5%A6%82%E4%BD%95%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>一次使用sqlmap过程中，它无法检测出一个很明显的布尔型回显注入，很好奇sqlmap如何检测不出。再加上有写检测注入工具的想法，看看sqlmap究竟是如何自动判断boolean型注入。</p>
+<h1 id="0x01-无法检测boolean注入"><a href="#0x01-无法检测boolean注入" class="headerlink" title="0x01 无法检测boolean注入"></a>0x01 无法检测boolean注入</h1><p>这里是存在boolean型注入，sqlmap检测不出来了。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/1.png"></p>
+<p>但是当把”33333333”增长一点，sqlmap是提取到”33333333…”作为了关键词来判断哪个页面正确哪个页面错误。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/2.png"></p>
+<p>那sqlmap是如何提取的呢？</p>
+<h1 id="0x02-分析"><a href="#0x02-分析" class="headerlink" title="0x02 分析"></a>0x02 分析</h1><p>sqlmap之所以能成为神器，因为它考虑了很多，代码也就很多，但是我对其他的技术细comparison节不太感兴趣，所以只针对如何检测boolean进行详细追溯。开始分析的时候，看代码的时候是根据关键词往上溯，这里是从上往下看。</p>
+<p>通过上图，通过sqlmap显示的info，找到关键词<code>with --string=</code>，来到<code>sqlmap-master\lib\controller\checks.py</code>，再寻找if、while之类的看下代码的流程，来到<code>478行</code></p>
+<p><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/3.png"></p>
+<p>从注释可以看到，这里是boolean型检测开始，下面还有其他的error-based、time-based、UNION query。明白自己所在的位置，大概分析的范围。</p>
+<p><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/4.png"></p>
+<p><code>genCmpPayload</code>这个函数用于生成boolean类型payload，<br><code>kb.matchRatio</code>是原始页面和<code>id=原始值</code>+<code>&quot;),&#39;.)(((,</code>报错页面的相似度。<br><code>kb.negativeLogic</code>是负逻辑，用一个负的随机数然后添加or的payload，where其他值可以在<code>sqlmap-master\xml\payloads\boolean_blind.xml</code>看到具体含义。</p>
+<p><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/5.png"></p>
+<p>接下来是<code>queryPage</code>函数，这个函数比较重要，它有一个修饰器，在<code>sqlmap-master\lib\core\decorators.py</code>中，threadData比较重要，它存储着上次请求的请求的各种数据，用来进行对比数据。在这个修饰的作用是为了当函数调用失败的时候，如果函数增加了往threadData.valueStack增加了数据，可以进行删除，从而恢复原来未调用函数之前的状态。下面是threadData存储的内容。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/6.png"></p>
+<p><code>queryPage</code>还会根据参数值，返回不同的结果，比较关键的是<code>getRatioValue</code>参数，因为这个参数的bool值影响里面最为关键函数comparison返回值。</p>
+<p><code>comparison</code>函数，也是根据getRatioValue参数，返回不同的结果，当getRatioValue为True的时候，返回与原始页面的相似度。<br>为False的时候，返回Bool值：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">正确页面，ratio &gt; UPPER_RATIO_BOUND（<span class="number">0.98</span>），返回True。</span><br><span class="line">错误页面，ratio &lt; LOWER_RATIO_BOUND（<span class="number">0.02</span>）为False。</span><br><span class="line">正确页面，正确页面相似度-错误页面相似度&gt;<span class="number">0.05</span>(ratio - kb.matchRatio) &gt; DIFF_TOLERANCE(<span class="number">0.05</span>)，允许%<span class="number">0.05</span>的误差。</span><br></pre></td></tr></table></figure>
+<p>很多情况下payload会回显在页面上，sqlmap这里是把payload替换成__REFLECTED_VALUE__，然后对比的时候再把这些干扰因素去掉。</p>
+<p>再通过threadData给falsePage, truePage返回包的各种参数（用于后面提取特征）。并通过<code>queryPage</code>获取相似度。进入到下一步判断。</p>
+<p>这里有一个<code>kb.nullConnection</code>，通过checkNullConnection函数进行检测，<br>1、HEAD方法请求，判断返回包里面是否有Content-Length。（近iis6支持）<br>2、增加Header头Range: bytes=-1，通过len判断返回报body的长度是不是等于1。（这个测试了apache、nginx、Apache-Coyote/1.1都无效）<br>3、直接通过判断返回报文里面是否有Content-Length，如果有则说明支持skip-read。（仅仅读取Content-Length的长度，来作为判断注入的依据）</p>
+<p>当取Content-Length作为判断的时候的相似度计算公式，这里注意一点，这里有一个取倒数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ratio = <span class="number">1.</span> * <span class="built_in">len</span>(seqMatcher.a) / <span class="built_in">len</span>(page)</span><br><span class="line"><span class="keyword">if</span> ratio &gt; <span class="number">1</span>:</span><br><span class="line">    ratio = <span class="number">1.</span> / ratio</span><br></pre></td></tr></table></figure>
+<p>因为多字节的问题，”路飞”,len(“路飞”)为2，而Content-Length为4。这样会导致ratio大于1。</p>
+<p>再看下下面的判断<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/7.png"><br>前面是发送正确的payload返回true，现在拿false的payload发送，测试是否返回false。如果错误页面的相似度也高于0.98则进入提取特征的环节，并不会判定为为注入。如果错误页面低于0.98虽然也会进入获取页面特征环节，但是此时已经被标注成了注入了。</p>
+<p>在标记注入前，如果<code>kb.heavilyDynamic</code>（太多的变量了），还会进行一次使用ture payload判断是否如何规则。然后才把injectable置为true。</p>
+<p>函数<code>getFilteredPageContent</code>通过正则<code>&lt;script.+?&lt;\/script&gt;|&lt;!--.+?--&gt;|&lt;style.+?&lt;\/style&gt;|&lt;[^&gt;]+&gt;|\t|\n|\r</code>去掉所有的标签和script和css样式代码，通过对比正确的页面和错误页面收集的关键词，减去差集获取特征候选者。<br>获取到特征候选者还会继续判断是不是仅仅由字符，逗号，句号，感叹，空格构成，里面是否又感叹号，是长度大于10，这样才之后才能成为特征值。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/8.png"></p>
+<p>这里主要是用于在判断了可能存在注入，提取一些特征，比如返回状态码、返回字符串。函数<code>extractTextTagContent</code>通过正则<code>&lt;(abbr|acronym|b|blockquote|br|center|cite|code|dt|em|font|h\\d|i|li|p|pre|q|strong|sub|sup|td|th|title|tt|u)(?!\\w).*?&gt;([^&lt;]+)</code>提取特定标签的text，然后获取正确页面text-错误页面text集合-错误页面的text，得到特征字符串。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/9.png"></p>
+<p>提取不返回的字符串，如果没有字符串和状态码这样明显特征，在判定可能存在注入的情况下，就只能靠相似度来识别。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/10.png"></p>
+<p>后面判定存在了，做了一些赋值，为后面的注入数据做准备工作。下面还有两个检测过滤工作。<br><img src="https://image.lufe1.cn/SQLMAP%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/11.png"></p>
+<p><code>checkSuhosinPatch(injection)</code>，检查了Suhosin path，因为Suhosin Get类型的，只获取value值前512字节，所以发送超过<a target="_blank" rel="noopener" href="https://www.suhosin.org/stories/configuration.html#suhosin-post-max-value-length" title="512">512</a>字节的payload，看是否还存在注入，如果存在，就没有Suhosin path，<br>payload为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=<span class="number">1&#x27;</span> <span class="keyword">and</span> <span class="number">9703</span>=     (<span class="number">512</span>空格)        <span class="number">9703</span>  AND <span class="string">&#x27;DyXn&#x27;</span>=<span class="string">&#x27;DyXn</span></span><br></pre></td></tr></table></figure>
+
+<p><code>checkFilteredChars(injection)</code>，检测大于号和圆括号是否过滤，如果利用下面payload请求返回包的相似度判断是否被过滤。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AND <span class="number">2210</span>&gt;<span class="number">2209</span> AND <span class="string">&#x27;mTvV&#x27;</span>=<span class="string">&#x27;mTvV</span></span><br><span class="line"><span class="string">AND (2209)=2209 AND &#x27;</span>ZWWn<span class="number">&#x27;</span>=<span class="string">&#x27;ZWWn</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>首先会收集原始页面body内容，用于相似度的比较，然后通过相似度初步判断是不是注入，如果判定为注入还会进行提取特征去作为特征值，如果没有只能使用相似度作为判断。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> re.match(<span class="string">r&quot;\A[\w.,! ]+\Z&quot;</span>, candidate) <span class="keyword">and</span> <span class="string">&#x27; &#x27;</span> <span class="keyword">in</span> candidate <span class="keyword">and</span> candidate.strip() <span class="keyword">and</span> <span class="built_in">len</span>(candidate) &gt; CANDIDATE_SENTENCE_MIN_LENGTH:</span><br><span class="line">    conf.string = candidate</span><br><span class="line">    injectable = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+<p>最开始说的那个注入之所以没有检测出，就是因为错误页面的相似度高于0.98，虽然提取出特征出来，但是后面判断特征不符合，放弃了该特征，导致判定没有注入。</p>
+<p>而这个判断是不太符合国情的，因为我们语言中使用空格的频率并不高，而英语是一个单词一个空格。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://www.anquanke.com/subject/id/160641">https://www.anquanke.com/subject/id/160641</a></p>
+<h1 id="首发安全客-https-www-anquanke-com-post-id-167408"><a href="#首发安全客-https-www-anquanke-com-post-id-167408" class="headerlink" title="首发安全客 https://www.anquanke.com/post/id/167408"></a>首发安全客 <a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/167408">https://www.anquanke.com/post/id/167408</a></h1>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2018/12/02/SQLMAP%E5%A6%82%E4%BD%95%E8%87%AA%E5%8A%A8%E6%A3%80%E6%B5%8BBoolean%E5%9E%8B%E6%B3%A8%E5%85%A5/" title="SQLMAP如何自动检测Boolean型注入" target="_blank" rel="external">https://lufe1.cn/2018/12/02/SQLMAP如何自动检测Boolean型注入/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/12/12/%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F%E7%BB%95%E8%BF%87%E5%AE%9E%E8%B7%B5/" title="端口扫描绕过实践"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/11/26/TestDll/" title="TestDll"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

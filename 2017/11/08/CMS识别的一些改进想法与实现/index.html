@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>CMS识别的一些改进想法与实现 | lufei&#39;s blog</title>
+  <meta name="description" content="0x00 前言用CMS识别工具，结果网站被扫死了。就想了想CMS识别的一些优化。一般工具就是把CMS指纹一条条扫。都没区别这套CMS是什么语言，然后根据语言选择指纹库，再去扫。扫了很多无用的指纹。 0x01 CMS识别思路1.主动式扫描，就是前面的方法，一条一套指纹去匹配，但是需要调整一下扫描策略。比如将指纹库分成ASP,PHP两种类型的，如果目标站是ASP的，则用ASP的指纹库去扫描，如果如果目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CMS识别的一些改进想法与实现">
+<meta property="og:url" content="https://lufe1.cn/2017/11/08/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%94%B9%E8%BF%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="0x00 前言用CMS识别工具，结果网站被扫死了。就想了想CMS识别的一些优化。一般工具就是把CMS指纹一条条扫。都没区别这套CMS是什么语言，然后根据语言选择指纹库，再去扫。扫了很多无用的指纹。 0x01 CMS识别思路1.主动式扫描，就是前面的方法，一条一套指纹去匹配，但是需要调整一下扫描策略。比如将指纹库分成ASP,PHP两种类型的，如果目标站是ASP的，则用ASP的指纹库去扫描，如果如果目">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E/1.jpg">
+<meta property="article:published_time" content="2017-11-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="原创工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E/1.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2017/11/08/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%94%B9%E8%BF%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-CMS识别的一些改进想法与实现" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      CMS识别的一些改进想法与实现
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2017/11/08/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%94%B9%E8%BF%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" class="article-date">
+	  <time datetime="2017-11-07T16:00:00.000Z" itemprop="datePublished">2017-11-08</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2017/11/08/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%94%B9%E8%BF%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h4 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h4><p>用CMS识别工具，结果网站被扫死了。就想了想CMS识别的一些优化。一般工具就是把CMS指纹一条条扫。都没区别这套CMS是什么语言，然后根据语言选择指纹库，再去扫。扫了很多无用的指纹。</p>
+<h4 id="0x01-CMS识别思路"><a href="#0x01-CMS识别思路" class="headerlink" title="0x01 CMS识别思路"></a>0x01 CMS识别思路</h4><p><strong>1.主动式扫描，就是前面的方法，一条一套指纹去匹配，但是需要调整一下扫描策略。</strong><br>比如将指纹库分成ASP,PHP两种类型的，如果目标站是ASP的，则用ASP的指纹库去扫描，如果如果目标站是PHP的，则用PHP的指纹库去扫描。</p>
+<p>再比如分析将指纹库分再细分成有favicon.ico，和无favicon.ico指纹库。<br>首先判断网站是否有favicon.ico，如果没有，则使用无favicon.ico指纹库进行扫描。如果有则获取其MD5值，跟已有指纹库相匹配，匹配到则识别出来，如果没有匹配到，则进入无favicon.ico指纹库扫描。</p>
+<p>优化的方法总之就是分类去扫描。</p>
+<p><strong>2.被动式扫描，抓取主页的css,js,html，jpg等文件，然后获取其相对路径，然后与搜集到的指纹库进行比较，获取匹配到最多的结果的CMS则为识别结果。</strong><br>这里的指纹库，就是一套cms里面所有的文件路径。<br>比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">/0001shop/aboutme.asp:睿拓智能网上商城 1.0</span><br><span class="line">/0001shop/admin/aboutme.asp:睿拓智能网上商城 1.0</span><br><span class="line">/0001shop/admin/ad/adEdit.asp:睿拓智能网上商城 1.0</span><br><span class="line">/0001shop/admin/ad/index.asp:睿拓智能网上商城 1.0</span><br><span class="line">/SD/jqtransformplugin/img/._btn_left.gif:SD留言本</span><br><span class="line">/SD/jqtransformplugin/img/._btn_right.gif:SD留言本</span><br><span class="line">/SD/jqtransformplugin/img/btn_left.gif:SD留言本</span><br></pre></td></tr></table></figure>
+<p>如果匹配到aboutme.asp则，睿拓智能网上商城 1.0就增加1，匹配到数量最多的则为识别CMS。</p>
+<h4 id="0x02-编程实现"><a href="#0x02-编程实现" class="headerlink" title="0x02 编程实现"></a>0x02 编程实现</h4><p>实现被动式扫描的思路。以asp网站为例。</p>
+<h6 id="0x00-爬取下载地址"><a href="#0x00-爬取下载地址" class="headerlink" title="0x00 爬取下载地址"></a>0x00 爬取下载地址</h6><p>爬去范围：<a target="_blank" rel="noopener" href="http://www.mycodes.net/5/">http://www.mycodes.net/5/</a> ,结束页是<a target="_blank" rel="noopener" href="http://www.mycodes.net/5/133.htm">http://www.mycodes.net/5/133.htm</a> 。</p>
+<p>使用BeautifulSoup进行提取URL下载地址，然后再使用request获取302跳转后的真正下载地址。</p>
+<p>脚本：crawl.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#encoding:UTF-8</span></span><br><span class="line"><span class="keyword">import</span> urllib.request</span><br><span class="line"><span class="keyword">import</span> bs4</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urlparse</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">WriteFile</span>(<span class="params">path,<span class="built_in">str</span></span>):</span></span><br><span class="line">    f = <span class="built_in">open</span>(path,<span class="string">&quot;a+&quot;</span>)</span><br><span class="line">    f.write(<span class="built_in">str</span>+<span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>,<span class="number">134</span>):</span><br><span class="line">    i = <span class="built_in">str</span>(i) + <span class="string">&quot;.htm&quot;</span></span><br><span class="line">    <span class="keyword">if</span>(i == <span class="string">&quot;1.htm&quot;</span>):</span><br><span class="line">        i = <span class="string">&quot;&quot;</span></span><br><span class="line">    url = <span class="string">&quot;http://www.mycodes.net/5/&quot;</span> + i</span><br><span class="line">    <span class="built_in">print</span>(url+<span class="string">&quot;\n&quot;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">##################################################</span></span><br><span class="line">    <span class="comment">#获取列表页中a标签的href内容</span></span><br><span class="line">    response = urllib.request.urlopen(url).read()</span><br><span class="line">    html = response.decode(<span class="string">&#x27;gbk&#x27;</span>,<span class="string">&#x27;ignore&#x27;</span>)</span><br><span class="line">    soup = BeautifulSoup(html,<span class="string">&quot;html.parser&quot;</span>)</span><br><span class="line">    table = soup.find_all(<span class="string">&quot;table&quot;</span>,width=re.<span class="built_in">compile</span>(<span class="string">&quot;97%&quot;</span>), border=<span class="string">&quot;0&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> a <span class="keyword">in</span> table:</span><br><span class="line">        name = a.find(<span class="string">&quot;a&quot;</span>,target=<span class="string">&quot;_blank&quot;</span>).string</span><br><span class="line">        <span class="built_in">print</span>(name)</span><br><span class="line">        <span class="built_in">print</span>(a.find(<span class="string">&quot;a&quot;</span>,target=<span class="string">&quot;_blank&quot;</span>)[<span class="string">&quot;href&quot;</span>])</span><br><span class="line">        siteUrl = a.find(<span class="string">&quot;a&quot;</span>,target=<span class="string">&quot;_blank&quot;</span>)[<span class="string">&quot;href&quot;</span>]</span><br><span class="line">        </span><br><span class="line">        <span class="comment">##################################################</span></span><br><span class="line">        <span class="comment">#获取详情页中下载地址</span></span><br><span class="line">        response = urllib.request.urlopen(siteUrl).read()</span><br><span class="line">        html = response.decode(<span class="string">&#x27;gbk&#x27;</span>,<span class="string">&#x27;ignore&#x27;</span>)</span><br><span class="line">        <span class="comment">#print(html)</span></span><br><span class="line">        siteSoup = BeautifulSoup(html,<span class="string">&quot;html.parser&quot;</span>)</span><br><span class="line">        jumpTd = siteSoup.find(<span class="string">&quot;td&quot;</span>,class_=<span class="string">&quot;b4&quot;</span>)</span><br><span class="line">        jumpA = jumpTd.find(<span class="string">&quot;a&quot;</span>)</span><br><span class="line">        </span><br><span class="line">        jumpUrl = jumpA[<span class="string">&#x27;href&#x27;</span>]</span><br><span class="line">        <span class="comment">#print(jumpUrl)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">##################################################</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="comment">#获取302跳转地址</span></span><br><span class="line">            buff = urllib.request.urlopen(jumpUrl)</span><br><span class="line">            <span class="built_in">print</span>(buff.geturl())</span><br><span class="line">            </span><br><span class="line">            <span class="comment">#获取下载文件名</span></span><br><span class="line">            parseResult = urlparse(buff.geturl())  </span><br><span class="line">            path = parseResult.path</span><br><span class="line">            regx = re.<span class="built_in">compile</span>(<span class="string">r&quot;&quot;&quot;/.*?/(.*?(?:\.zip|rar))&quot;&quot;&quot;</span>,re.I)</span><br><span class="line">            regxResult = re.findall(regx,path)</span><br><span class="line">            <span class="built_in">print</span>(regxResult[<span class="number">0</span>])</span><br><span class="line">            </span><br><span class="line">            <span class="comment">#写入文件</span></span><br><span class="line">            WriteFile(<span class="string">&#x27;url.txt&#x27;</span>,buff.geturl())</span><br><span class="line">            WriteFile(<span class="string">&#x27;match.txt&#x27;</span>,regxResult[<span class="number">0</span>]+<span class="string">&quot;:&quot;</span>+name)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<h6 id="0x01-下载压缩包"><a href="#0x01-下载压缩包" class="headerlink" title="0x01 下载压缩包"></a>0x01 下载压缩包</h6><p>下载url.txt中的文件。也可以用迅雷下载，下载文件比较多，也比较大，很消耗时间。<br>文件：download.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> request</span><br><span class="line">f = <span class="built_in">open</span>(<span class="string">r&quot;url.txt&quot;</span>,<span class="string">&quot;r&quot;</span>)  </span><br><span class="line">lines = f.readlines()<span class="comment">#读取全部内容  </span></span><br><span class="line"><span class="keyword">for</span> line <span class="keyword">in</span> lines:</span><br><span class="line">    downUrl = line.replace(<span class="string">&#x27;\n&#x27;</span>,<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(downUrl)</span><br><span class="line">    filename = downUrl.split(<span class="string">&#x27;/&#x27;</span>)[-<span class="number">1</span>] </span><br><span class="line">    <span class="built_in">print</span>(filename)</span><br><span class="line">    <span class="keyword">with</span> request.urlopen(downUrl) <span class="keyword">as</span> reponse:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(filename, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> outFile:</span><br><span class="line">            outFile.write(reponse.read())</span><br></pre></td></tr></table></figure>
+<h6 id="0x02-搜集路径"><a href="#0x02-搜集路径" class="headerlink" title="0x02 搜集路径"></a>0x02 搜集路径</h6><p>遍历压缩包里面的文件路径，然后记录到cms.txt文件当中去。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="comment"># unzip-gbk.py</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> zipfile</span><br><span class="line"><span class="keyword">import</span> rarfile</span><br><span class="line"><span class="keyword">import</span> io</span><br><span class="line"><span class="keyword">import</span> sys  </span><br><span class="line">reload(sys)  </span><br><span class="line">sys.setdefaultencoding(<span class="string">&#x27;gbk&#x27;</span>)</span><br><span class="line">info = &#123;</span><br><span class="line">    <span class="string">&quot;Xiao5u_Query_2.3.zip&quot;</span>:<span class="string">&quot;校无忧录取查询系统 2.3&quot;</span>,</span><br><span class="line">    <span class="string">&quot;wxpay_1.0.zip&quot;</span>:<span class="string">&quot;ASP微信支付接口 1.0&quot;</span>,</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">WriteFile</span>(<span class="params"><span class="built_in">dir</span></span>):</span></span><br><span class="line">    f = <span class="built_in">open</span>(<span class="string">&quot;cms.txt&quot;</span>, <span class="string">&quot;a+&quot;</span>)</span><br><span class="line">    f.write(<span class="built_in">dir</span> + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> os.listdir(<span class="string">&quot;./ASP/&quot;</span>):</span><br><span class="line">    flagDir = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    dirList = []</span><br><span class="line">    <span class="keyword">if</span> (os.path.splitext(file)[<span class="number">1</span>] == <span class="string">&quot;.rar&quot;</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span> + file + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line">        </span><br><span class="line">        rFileName = <span class="string">&quot;./ASP/&quot;</span> + file</span><br><span class="line">        r = rarfile.RarFile(rFileName, <span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">        <span class="keyword">for</span> filePath <span class="keyword">in</span> r.namelist():</span><br><span class="line">            filePath = <span class="string">&#x27;/&#x27;</span> + filePath</span><br><span class="line">            <span class="comment">#处理目录路径</span></span><br><span class="line">            <span class="keyword">if</span>(filePath.split(<span class="string">&#x27;/&#x27;</span>)[-<span class="number">1</span>].find(<span class="string">&#x27;.&#x27;</span>)&lt;<span class="number">0</span> <span class="keyword">and</span> filePath[-<span class="number">1</span>]!=<span class="string">&#x27;/&#x27;</span>):</span><br><span class="line">                filePath = filePath + <span class="string">&#x27;/&#x27;</span></span><br><span class="line">            <span class="comment">#添加到路径列表当中去</span></span><br><span class="line">            dirList.append(filePath)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">len</span>(dirList)&gt;<span class="number">0</span>):</span><br><span class="line">            <span class="keyword">for</span> filePath <span class="keyword">in</span> dirList:</span><br><span class="line">                <span class="keyword">try</span>:</span><br><span class="line">                    <span class="built_in">print</span>(filePath.replace(flagDir,<span class="string">&#x27;&#x27;</span>) + <span class="string">&quot;:&quot;</span> + info[file])</span><br><span class="line">                    WriteFile(filePath.replace(flagDir,<span class="string">&#x27;&#x27;</span>) + <span class="string">&quot;:&quot;</span> + info[file])</span><br><span class="line">                <span class="keyword">except</span>:</span><br><span class="line">                    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#####################################################################################################</span></span><br><span class="line">    <span class="comment">#zip 压缩包</span></span><br><span class="line">    <span class="keyword">if</span> (os.path.splitext(file)[<span class="number">1</span>] == <span class="string">&quot;.zip&quot;</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span> + file + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line">        </span><br><span class="line">        zFileName = <span class="string">&quot;./ASP/&quot;</span> + file</span><br><span class="line">        z = zipfile.ZipFile(zFileName, <span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">        <span class="keyword">for</span> filePath <span class="keyword">in</span> z.namelist():</span><br><span class="line">            filePath = <span class="string">&#x27;/&#x27;</span> + filePath</span><br><span class="line">            <span class="comment">#处理目录路径</span></span><br><span class="line">            <span class="keyword">if</span>(filePath.split(<span class="string">&#x27;/&#x27;</span>)[-<span class="number">1</span>].find(<span class="string">&#x27;.&#x27;</span>)&lt;<span class="number">0</span> <span class="keyword">and</span> filePath[-<span class="number">1</span>]!=<span class="string">&#x27;/&#x27;</span>):</span><br><span class="line">                filePath = filePath + <span class="string">&#x27;/&#x27;</span></span><br><span class="line">            <span class="comment">#添加到路径列表当中去</span></span><br><span class="line">            dirList.append(filePath)</span><br><span class="line">                    </span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">len</span>(dirList)&gt;<span class="number">0</span>):            </span><br><span class="line">            <span class="keyword">for</span> filePath <span class="keyword">in</span> dirList:</span><br><span class="line">                <span class="keyword">try</span>:</span><br><span class="line">                    <span class="built_in">print</span>(filePath.replace(flagDir,<span class="string">&#x27;&#x27;</span>) + <span class="string">&quot;:&quot;</span> + info[file])</span><br><span class="line">                    WriteFile(filePath.replace(flagDir,<span class="string">&#x27;&#x27;</span>) + <span class="string">&quot;:&quot;</span> + info[file])</span><br><span class="line">                <span class="keyword">except</span>:</span><br><span class="line">                    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="0x03-cms识别"><a href="#0x03-cms识别" class="headerlink" title="0x03 cms识别"></a>0x03 cms识别</h6><p>抓取目标站的jpg,png,gif,js,css,以及href里面的路径，与cms.txt中的内容去匹配，匹配到最多数量的即为识别CMS。<br>python3：CmsIdentify.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> urllib.request</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urlparse</span><br><span class="line"></span><br><span class="line">url = <span class="string">&quot;http://www.hut.edu.cn/&quot;</span></span><br><span class="line">data = urllib.request.urlopen(url).read()</span><br><span class="line">data = data.decode(<span class="string">&#x27;gbk&#x27;</span>,<span class="string">&#x27;ignore&#x27;</span>)</span><br><span class="line"></span><br><span class="line">resultDict = &#123;&#125;</span><br><span class="line">infoDict = &#123;&#125;</span><br><span class="line"></span><br><span class="line">regx = re.<span class="built_in">compile</span>(<span class="string">r&quot;&quot;&quot;src=\W(\S*?(?:\.jpg|png|gif))&quot;&quot;&quot;</span>,re.I)</span><br><span class="line">picList = re.findall(regx,data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(picList)):</span><br><span class="line">    picList[index] = picList[index].lower()</span><br><span class="line">    </span><br><span class="line">picList = <span class="built_in">list</span>(<span class="built_in">set</span>(picList))</span><br><span class="line">picExistList = picList</span><br><span class="line"><span class="built_in">print</span>(picList)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">regx = re.<span class="built_in">compile</span>(<span class="string">r&quot;&quot;&quot;src=\W(\S*?\.js)&quot;&quot;&quot;</span>,re.I)</span><br><span class="line">jsList = re.findall(regx,data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(jsList)):</span><br><span class="line">    jsList[index] = jsList[index].lower()</span><br><span class="line">jsList = <span class="built_in">list</span>(<span class="built_in">set</span>(jsList))</span><br><span class="line"><span class="built_in">print</span>(jsList)</span><br><span class="line"></span><br><span class="line">regx = re.<span class="built_in">compile</span>(<span class="string">r&quot;&quot;&quot;href=\W(\S*?\.css)&quot;&quot;&quot;</span>,re.I)</span><br><span class="line">cssList = re.findall(regx,data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(cssList)):</span><br><span class="line">    cssList[index] = cssList[index].lower()</span><br><span class="line">cssList = <span class="built_in">list</span>(<span class="built_in">set</span>(cssList))</span><br><span class="line"><span class="built_in">print</span>(cssList)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">regx = re.<span class="built_in">compile</span>(<span class="string">r&quot;&quot;&quot;a.*?href=\W(\S*?&quot;)&quot;&quot;&quot;</span>,re.I)</span><br><span class="line">pathList = re.findall(regx,data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(pathList)):</span><br><span class="line">    pathList[index] = pathList[index].lower()</span><br><span class="line">    parseResult = urlparse(pathList[index])  </span><br><span class="line">    path = parseResult.path</span><br><span class="line">    <span class="keyword">if</span>(path[<span class="number">0</span>:<span class="number">1</span>]==<span class="string">&#x27;/&#x27;</span>):</span><br><span class="line">        path = path[<span class="number">1</span>:]</span><br><span class="line">    pathList[index] = path</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">in</span> pathList:</span><br><span class="line">    pathList.remove(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">pathList = <span class="built_in">list</span>(<span class="built_in">set</span>(pathList))</span><br><span class="line"><span class="built_in">print</span>(pathList)</span><br><span class="line"></span><br><span class="line"><span class="comment"># sys.exit()</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;\n\n\n\n&#x27;</span>)</span><br><span class="line">f = <span class="built_in">open</span>(<span class="string">&quot;log.txt&quot;</span>,<span class="string">&quot;r&quot;</span>)  </span><br><span class="line"></span><br><span class="line">lines = f.readlines()<span class="comment">#读取全部内容  </span></span><br><span class="line"><span class="keyword">for</span> line <span class="keyword">in</span> lines: </span><br><span class="line">    line = line.replace(<span class="string">&#x27;\n&#x27;</span>,<span class="string">&#x27;&#x27;</span>).lower()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> pic <span class="keyword">in</span> picList:</span><br><span class="line">        <span class="keyword">if</span>(line.find(pic)&gt;-<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">if</span>((infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>])==<span class="literal">None</span>) <span class="keyword">or</span> (pic <span class="keyword">not</span> <span class="keyword">in</span> infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]))):</span><br><span class="line">                key = line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]</span><br><span class="line">                value = pic</span><br><span class="line">                infoDict.setdefault(key,[]).append(value)</span><br><span class="line">                <span class="keyword">if</span>(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>] <span class="keyword">in</span> resultDict):</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] + <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> js <span class="keyword">in</span> jsList:</span><br><span class="line">        <span class="keyword">if</span>(line.find(js)&gt;-<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">if</span>((infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>])==<span class="literal">None</span>) <span class="keyword">or</span> (js <span class="keyword">not</span> <span class="keyword">in</span> infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]))):</span><br><span class="line">                key = line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]</span><br><span class="line">                value = js</span><br><span class="line">                infoDict.setdefault(key,[]).append(value)</span><br><span class="line">                <span class="keyword">if</span>(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>] <span class="keyword">in</span> resultDict):</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] + <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = <span class="number">1</span></span><br><span class="line">                </span><br><span class="line">    <span class="keyword">for</span> css <span class="keyword">in</span> cssList:</span><br><span class="line">        <span class="keyword">if</span>(line.find(css)&gt;-<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">if</span>((infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>])==<span class="literal">None</span>) <span class="keyword">or</span> (css <span class="keyword">not</span> <span class="keyword">in</span> infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]))):</span><br><span class="line">                key = line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]</span><br><span class="line">                value = css</span><br><span class="line">                infoDict.setdefault(key,[]).append(value)</span><br><span class="line">                <span class="keyword">if</span>(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>] <span class="keyword">in</span> resultDict):</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] + <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = <span class="number">1</span></span><br><span class="line">                    </span><br><span class="line">    <span class="keyword">for</span> path <span class="keyword">in</span> pathList:</span><br><span class="line">        <span class="keyword">if</span>(line.find(path)&gt;-<span class="number">1</span>):</span><br><span class="line">            <span class="keyword">if</span>((infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>])==<span class="literal">None</span>) <span class="keyword">or</span> (path <span class="keyword">not</span> <span class="keyword">in</span> infoDict.get(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]))):</span><br><span class="line">                key = line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]</span><br><span class="line">                value = path</span><br><span class="line">                infoDict.setdefault(key,[]).append(value)</span><br><span class="line">                <span class="keyword">if</span>(line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>] <span class="keyword">in</span> resultDict):</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] + <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    resultDict[line.split(<span class="string">&#x27;:&#x27;</span>)[<span class="number">1</span>]] = <span class="number">1</span></span><br><span class="line">                </span><br><span class="line"></span><br><span class="line">resultDict = <span class="built_in">sorted</span>(resultDict.items(), key=<span class="keyword">lambda</span> e:e[<span class="number">1</span>], reverse=<span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;\n\n\n\n&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(resultDict)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;\n\n\n\n&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(resultDict[<span class="number">0</span>])</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;infoDict[resultDict[0][0]]\n\n\n\n&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(infoDict[resultDict[<span class="number">0</span>][<span class="number">0</span>]])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="0x03-效果图与结语"><a href="#0x03-效果图与结语" class="headerlink" title="0x03 效果图与结语"></a>0x03 效果图与结语</h4><p><img src="https://image.lufe1.cn/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E/1.jpg" alt="1.jpg" title="1.jpg"></p>
+<p>进一步可以存入数据当中，使用文件去匹配，速度太慢了。</p>
+<p>下载地址：<br>链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1o7ATv3G">https://pan.baidu.com/s/1o7ATv3G</a> 密码: a8s9</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2017/11/08/CMS%E8%AF%86%E5%88%AB%E7%9A%84%E4%B8%80%E4%BA%9B%E6%94%B9%E8%BF%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="CMS识别的一些改进想法与实现" target="_blank" rel="external">https://lufe1.cn/2017/11/08/CMS识别的一些改进想法与实现/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/02/15/%E6%9C%80%E8%BF%91GD%E5%BA%93%E6%8B%92%E7%BB%9D%E6%9C%8D%E5%8A%A1%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B8%8EEXP%E6%9E%84%E9%80%A0(CVE-2018-5711)/" title="最近GD库拒绝服务漏洞分析与EXP构造(CVE-2018-5711)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2017/10/24/Meterpreter%20Generator/" title="Meterpreter Generator"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

